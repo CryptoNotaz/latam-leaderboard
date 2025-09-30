@@ -3,43 +3,26 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>LATAM Coins Leaderboard</title>
+  <title>LATAM Coins Leaderboard — Dexscreener</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    // Modo oscuro guardado en localStorage
-    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const savedTheme = localStorage.getItem('theme');
-    if ((savedTheme === 'dark') || (!savedTheme && prefersDark)) {
-      document.documentElement.classList.add('dark');
-    }
-  </script>
 </head>
-<body class="min-h-screen bg-gray-50 text-gray-900 dark:bg-neutral-950 dark:text-neutral-100">
-  <div class="relative">
-    <div class="absolute inset-0 -z-10 bg-gradient-to-b from-fuchsia-100/60 via-transparent to-transparent dark:from-fuchsia-500/10"></div>
-  </div>
-
-  <div class="max-w-6xl mx-auto p-6">
-    <header class="mb-6 flex items-start justify-between gap-4">
-      <div>
-        <h1 class="text-3xl md:text-4xl font-black tracking-tight">LATAM Coins Leaderboard</h1>
-        <p class="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-1">Datos de <b>Dexscreener</b>. Orden por <b>Market Cap</b>; si falta, <b>FDV</b>. Click en una fila para abrir Dexscreener.</p>
-      </div>
-      <div class="flex items-center gap-2">
-        <button id="themeBtn" class="px-3 py-2 rounded-xl border bg-white/70 backdrop-blur text-sm dark:bg-neutral-900 dark:border-neutral-800">🌙/☀️</button>
-      </div>
+<body class="min-h-screen bg-gray-50 text-gray-900">
+  <div class="max-w-5xl mx-auto p-6">
+    <header class="mb-6 text-center">
+      <h1 class="text-3xl font-bold">LATAM Coins Leaderboard</h1>
+      
     </header>
 
-    <section class="grid gap-4 md:grid-cols-5 items-start">
-      <div class="md:col-span-5">
-        <div class="flex items-center gap-3 mb-3">
-          <button id="refreshBtn" class="px-4 py-2 rounded-xl bg-black text-white font-medium shadow hover:opacity-90 active:opacity-80 dark:bg-white dark:text-black">Actualizar</button>
-          <span id="status" class="text-sm text-gray-600 dark:text-gray-400"></span>
+    <section class="grid gap-4 items-start">
+      <div>
+        <div class="flex items-center gap-3 mb-3 justify-center sm:justify-start">
+          <button id="refreshBtn" class="px-4 py-2 rounded-xl bg-black text-white font-medium shadow hover:opacity-90 active:opacity-80">Actualizar</button>
+          <span id="status" class="text-sm text-gray-600"></span>
         </div>
 
-        <div class="overflow-x-auto rounded-2xl shadow ring-1 ring-black/5 dark:ring-white/10 bg-white dark:bg-neutral-900">
+        <div class="overflow-x-auto bg-white rounded-2xl shadow">
           <table class="min-w-full text-sm" id="table">
-            <thead class="bg-gray-100/80 dark:bg-neutral-800/60">
+            <thead class="bg-gray-100">
               <tr>
                 <th class="px-4 py-3 text-left">#</th>
                 <th class="px-4 py-3 text-left">Moneda</th>
@@ -55,8 +38,11 @@
       </div>
     </section>
 
-    <footer class="mt-10 text-xs text-gray-500 dark:text-gray-400">
-      <p>Lectura pública. La lista de tokens proviene de <code>tokens.json</code> en el mismo directorio. Solo quien tenga acceso de escritura al repositorio puede cambiarla.</p>
+    <footer class="mt-10 text-xs text-gray-500">
+      <div class="flex items-center gap-2 justify-center sm:justify-start">
+        <img src="./v1ps-logo.png" alt="V1PS" class="w-4 h-4 rounded">
+        <span>Powered by <a class="underline" href="https://x.com/V1PS_NFTs" target="_blank" rel="noopener">V1PS</a></span>
+      </div>
     </footer>
   </div>
 
@@ -64,38 +50,28 @@
     const tbody = document.getElementById('tbody');
     const refreshBtn = document.getElementById('refreshBtn');
     const statusEl = document.getElementById('status');
-    const themeBtn = document.getElementById('themeBtn');
-
-    themeBtn.addEventListener('click', () => {
-      const root = document.documentElement;
-      if (root.classList.contains('dark')) {
-        root.classList.remove('dark');
-        localStorage.setItem('theme', 'light');
-      } else {
-        root.classList.add('dark');
-        localStorage.setItem('theme', 'dark');
-      }
-    });
 
     const USD_QUOTES = ['USD', 'USDC', 'USDT', 'DAI', 'USD1', 'USDE', 'USDX'];
 
     const fmtNum = (n, max = 2) => new Intl.NumberFormat('en-US', { maximumFractionDigits: max }).format(n);
     const fmtUsd = (n) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 }).format(n);
+    const fmtUsdSmart = (n) => {
+      const opts = { style: 'currency', currency: 'USD' };
+      if (Math.abs(n) >= 1) { opts.minimumFractionDigits = 2; opts.maximumFractionDigits = 2; }
+      else { opts.minimumFractionDigits = 5; opts.maximumFractionDigits = 5; }
+      return new Intl.NumberFormat('en-US', opts).format(n);
+    };
 
     async function loadTokenList() {
       try {
         const res = await fetch('./tokens.json?ts=' + Date.now(), { cache: 'no-store' });
         if (!res.ok) throw new Error('No se pudo cargar tokens.json');
         const list = await res.json();
-        // Normaliza items: {chain, address}
         return list.map(x => ({ chain: (x.chain||'solana').toLowerCase(), address: x.address }));
       } catch (err) {
-        console.warn('Fallo tokens.json, usando fallback:', err);
-        // Fallback con tus 2 tokens de ejemplo
-        return [
-          { chain: 'solana', address: 'BS7HxRitaY5ipGfbek1nmatWLbaS9yoWRSEQzCb3pump' },
-          { chain: 'solana', address: '9RLoB3YZwk9sK78ZhmiSAj8CtPhssuJR1pVR326Vpump' },
-        ];
+        console.error(err);
+        statusEl.textContent = 'No se pudo cargar tokens.json';
+        return [];
       }
     }
 
@@ -116,7 +92,7 @@
         const isUsd = USD_QUOTES.some(u => qSym.includes(u));
         const liq = p.liquidity?.usd ?? 0;
         const vol = p.volume?.h24 ?? 0;
-        const score = (isUsd ? 1 : 0) * 1e12 + liq * 1e6 + vol; // USD > Liquidez > Volumen
+        const score = (isUsd ? 1 : 0) * 1e12 + liq * 1e6 + vol; // prefer USD, then liquidity, then volume
         const prev = best.get(base);
         if (!prev || score > prev.__score) { p.__score = score; best.set(base, p); }
       }
@@ -164,7 +140,7 @@
 
       tokens.forEach((t, i) => {
         const tr = document.createElement('tr');
-        tr.className = i % 2 ? 'bg-white dark:bg-neutral-900' : 'bg-gray-50 dark:bg-neutral-800 hover:bg-gray-100 dark:hover:bg-neutral-700 cursor-pointer';
+        tr.className = i % 2 ? 'bg-white' : 'bg-gray-50 hover:bg-gray-100 cursor-pointer';
         const badge = t.mc != null ? 'MC' : (t.fdv != null ? 'FDV' : '—');
         const cap = t.mc ?? t.fdv;
         const chg = t.change24;
@@ -176,15 +152,15 @@
               ${t.imageUrl ? `<img src="${t.imageUrl}" class="w-5 h-5 rounded-full"/>` : ''}
               <div class="flex items-center gap-2">
                 <span class="font-medium">${t.name}</span>
-                <span class="uppercase text-xs text-gray-500 dark:text-gray-400">${t.symbol}</span>
-                <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-200 dark:bg-neutral-700">${t.chainId}</span>
+                <span class="uppercase text-xs text-gray-500">${t.symbol}</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-200">${t.chainId}</span>
               </div>
             </div>
           </td>
-          <td class="px-4 py-3 text-right">${t.priceUsd != null ? fmtUsd(t.priceUsd) : '—'}</td>
+          <td class="px-4 py-3 text-right">${t.priceUsd != null ? fmtUsdSmart(t.priceUsd) : '—'}</td>
           <td class="px-4 py-3 text-right">
             ${cap != null ? fmtUsd(cap) : '—'}
-            <span class="ml-1 text-[10px] px-1 py-0.5 rounded bg-gray-100 dark:bg-neutral-700 border dark:border-neutral-600">${badge}</span>
+            <span class="ml-1 text-[10px] px-1 py-0.5 rounded bg-gray-100 border">${badge}</span>
           </td>
           <td class="px-4 py-3 text-right">${t.liq != null ? fmtUsd(t.liq) : '—'}</td>
           <td class="px-4 py-3 text-right ${chgClass}">${chg != null ? fmtNum(chg, 2) + '%' : '—'}</td>
@@ -198,6 +174,7 @@
       try {
         statusEl.textContent = 'Cargando…';
         const list = await loadTokenList();
+        if (!list.length) { tbody.innerHTML = ''; statusEl.textContent = 'Agrega tokens a tokens.json'; return; }
         const pairs = await fetchAll(list);
         render(pairs);
         statusEl.textContent = `Actualizado: ${new Date().toLocaleTimeString()}`;
@@ -212,3 +189,5 @@
   </script>
 </body>
 </html>
+
+
