@@ -50,6 +50,7 @@
     const tbody = document.getElementById('tbody');
     const refreshBtn = document.getElementById('refreshBtn');
     const statusEl = document.getElementById('status');
+    const REFRESH_MS = 60000; // auto-refresh cada 60s
 
     const USD_QUOTES = ['USD', 'USDC', 'USDT', 'DAI', 'USD1', 'USDE', 'USDX'];
 
@@ -61,6 +62,15 @@
       else { opts.minimumFractionDigits = 5; opts.maximumFractionDigits = 5; }
       return new Intl.NumberFormat('en-US', opts).format(n);
     };
+
+    // Intenta obtener la URL de X/Twitter desde Dexscreener
+    function getXUrl(info) {
+      const socials = info?.socials || [];
+      const byType = socials.find(s => /twitter|x/i.test(s?.type || s?.platform || ''));
+      if (byType?.url) return byType.url;
+      const byUrl = socials.find(s => /twitter\.com|x\.com/i.test(s?.url || ''));
+      return byUrl?.url || null;
+    }
 
     async function loadTokenList() {
       try {
@@ -132,6 +142,7 @@
         fdv: (typeof p.fdv === 'number' ? p.fdv : null),
         liq: p.liquidity?.usd ?? null,
         change24: p.priceChange?.h24 ?? null,
+        xUrl: getXUrl(p.info),
         chainId: p.chainId,
         url: p.url
       }));
@@ -154,6 +165,11 @@
                 <span class="font-medium">${t.name}</span>
                 <span class="uppercase text-xs text-gray-500">${t.symbol}</span>
                 <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-200">${t.chainId}</span>
+                ${t.xUrl ? `<a href="${t.xUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="inline-flex items-center justify-center w-5 h-5 rounded hover:bg-gray-200" title="X / Twitter">
+                  <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="currentColor" aria-hidden="true">
+                    <path d="M18.244 3.515h3.167l-6.92 7.91 8.11 9.06H19.21l-5.66-6.328-6.465 6.328H3.917l7.405-7.245-7.87-8.726h4.04l5.157 5.723 5.595-5.723Zm-1.112 16.01h1.755L7.94 5.864H6.06l11.072 13.662Z"></path>
+                  </svg>
+                </a>` : ``}
               </div>
             </div>
           </td>
@@ -177,7 +193,7 @@
         if (!list.length) { tbody.innerHTML = ''; statusEl.textContent = 'Agrega tokens a tokens.json'; return; }
         const pairs = await fetchAll(list);
         render(pairs);
-        statusEl.textContent = `Actualizado: ${new Date().toLocaleTimeString()}`;
+        statusEl.textContent = `Actualizado: ${new Date().toLocaleTimeString()} · Auto 60s`;
       } catch (err) {
         console.error(err);
         statusEl.textContent = 'Error al actualizar.';
@@ -186,8 +202,10 @@
 
     refreshBtn.addEventListener('click', refresh);
     refresh();
+    setInterval(refresh, REFRESH_MS);
   </script>
 </body>
 </html>
+
 
 
