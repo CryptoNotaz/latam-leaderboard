@@ -25,13 +25,12 @@
 
         <div class="overflow-x-auto bg-white rounded-2xl shadow">
           <table class="w-full table-fixed text-xs sm:text-sm" id="table">
-            <thead class="bg-gray-100">
+            <thead class="bg-gray-100 sticky top-0 z-10">
               <tr>
                 <th class="w-6 px-2 py-2 sm:px-4 sm:py-3 text-left">#</th>
                 <th class="px-2 py-2 sm:px-4 sm:py-3 text-left">Ticker</th>
                 <th class="w-28 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right">Precio</th>
                 <th class="w-16 sm:w-20 px-2 py-2 sm:px-4 sm:py-3 text-right">24h</th>
-                <th class="hidden md:table-cell w-28 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right">Liquidez</th>
                 <th class="w-24 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right">Market Cap</th>
               </tr>
             </thead>
@@ -191,15 +190,15 @@
               ${t.xUrl ? `<a href="${t.xUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200" title="X / Twitter">
                 <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="currentColor" aria-hidden="true"><path d="M18.244 3.515h3.167l-6.92 7.91 8.11 9.06H19.21l-5.66-6.328-6.465 6.328H3.917l7.405-7.245-7.87-8.726h4.04l5.157 5.723 5.595-5.723Zm-1.112 16.01h1.755L7.94 5.864H6.06l11.072 13.662Z"></path></svg>
               </a>` : ''}
-              ${t.address ? `<button class="copy relative inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200" data-copy="${t.address}" aria-label="Copiar CA" onclick="event.stopPropagation()">
+              ${t.address ? `<button class="copy relative shrink-0 inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200" data-copy="${t.address}" aria-label="Copiar CA">
                 <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="currentColor" aria-hidden="true"><path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"></path></svg>
-                <span class="tooltip absolute -top-7 left-1/2 -translate-x-1/2 whitespace-nowrap bg-black text-white text-[10px] px-2 py-0.5 rounded opacity-0 pointer-events-none transition-opacity">Copiado</span>
+                <span class="tooltip absolute top-7 right-0 bg-black text-white text-[10px] px-2 py-0.5 rounded opacity-0 pointer-events-none transition-opacity">Copiado</span>
               </button>` : ''}
             </div>
           </td>
           <td class="w-28 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">${t.priceUsd != null ? fmtUsdSmart(t.priceUsd) : '—'}</td>
           <td class="w-16 sm:w-20 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap ${chgClass}">${chg != null ? fmtNum(chg, 2) + '%' : '—'}</td>
-          <td class="hidden md:table-cell w-28 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">${t.liq != null ? fmtUsd(t.liq) : '—'}</td>
+          
           <td class="w-24 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">
             <span class="md:hidden">${cap != null ? fmtUsdCompact(cap) : '—'}</span>
             <span class="hidden md:inline">${cap != null ? fmtUsd(cap) : '—'} <span class="ml-1 text-[10px] px-1 py-0.5 rounded bg-gray-100 border">${badge}</span></span>
@@ -211,12 +210,12 @@
         const det = document.createElement('tr');
         det.className = 'details hidden bg-white/70';
         det.innerHTML = `
-          <td colspan="6" class="px-4 py-3">
+          <td colspan="5" class="px-4 py-3">
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs text-gray-700">
+              <div class="md:col-span-4 flex flex-wrap items-center gap-2"><span class="font-medium">CA:</span> <code class="font-mono text-xs sm:text-[13px] break-all md:whitespace-nowrap select-all">${t.address || '—'}</code> <button class="copy relative inline-flex items-center gap-1 border rounded px-2 py-0.5 ml-1" data-copy="${t.address || ''}">Copiar<span class="tooltip absolute top-7 right-0 bg-black text-white text-[10px] px-2 py-0.5 rounded opacity-0 pointer-events-none transition-opacity">Copiado</span></button></div>
               <div><span class="font-medium">Liquidez:</span> ${t.liq != null ? fmtUsd(t.liq) : '—'}</div>
               <div><span class="font-medium">Market Cap:</span> ${cap != null ? fmtUsd(cap) : '—'} (${badge})</div>
               ${t.fdv != null ? `<div><span class="font-medium">FDV:</span> ${fmtUsd(t.fdv)}</div>` : ''}
-              <div class="truncate md:whitespace-normal md:overflow-visible"><span class="font-medium">CA:</span> <code class="break-all md:block">${t.address || '—'}</code> <button class="copy relative border rounded px-2 py-0.5 ml-1" data-copy="${t.address || ''}">Copiar<span class="tooltip absolute -top-7 left-1/2 -translate-x-1/2 whitespace-nowrap bg-black text-white text-[10px] px-2 py-0.5 rounded opacity-0 pointer-events-none transition-opacity">Copiado</span></button></div>
               <div class="flex gap-2">
                 ${t.url ? `<a href="${t.url}" target="_blank" rel="noopener" class="border rounded px-3 py-1">Dexscreener</a>` : ''}
                 ${t.xUrl ? `<a href="${t.xUrl}" target="_blank" rel="noopener" class="border rounded px-3 py-1">X/Twitter</a>` : ''}
@@ -270,7 +269,7 @@
     async function copyTextSafe(text) {
       try {
         await navigator.clipboard.writeText(text);
-        return true;
+        return true; // Clipboard API
       } catch (e) {
         try {
           const ta = document.createElement('textarea');
@@ -282,26 +281,32 @@
           ta.select();
           const ok = document.execCommand('copy');
           document.body.removeChild(ta);
-          return ok;
+          return ok; // execCommand fallback
         } catch {
           return false;
         }
       }
     }
 
-    // Delegación de eventos: COPIAR, abrir/cerrar detalles
+    // Delegación de eventos: COPIAR, abrir/cerrar detalles COPIAR, abrir/cerrar detalles
     tbody.addEventListener('click', async (e) => {
       const copyBtn = e.target.closest('.copy');
       if (copyBtn) {
         const text = copyBtn.getAttribute('data-copy') || '';
         let ok = false;
         if (text) ok = await copyTextSafe(text);
+
+        // Último recurso en entornos restringidos (canvas/iframe): abrir prompt para que el usuario copie manualmente
+        if (!ok && window.top !== window.self && text) {
+          try { window.prompt('Copiar CA (selecciona y copia):', text); ok = true; } catch(_) {}
+        }
+
         const tip = copyBtn.querySelector('.tooltip');
         if (tip) {
           tip.textContent = ok ? 'Copiado' : 'No permitido';
           tip.classList.remove('opacity-0');
           tip.classList.add('opacity-100');
-          setTimeout(()=> { tip.classList.add('opacity-0'); tip.textContent = 'Copiado'; }, 1200);
+          setTimeout(()=> { tip.classList.add('opacity-0'); tip.classList.remove('opacity-100'); tip.textContent = 'Copiado'; }, 1200);
         }
         e.stopPropagation();
         return; // no toggle
@@ -321,10 +326,3 @@
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
