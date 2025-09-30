@@ -11,7 +11,7 @@
   </style>
 </head>
 <body class="min-h-screen bg-gray-50 text-gray-900">
-  <div class="max-w-5xl mx-auto p-6">
+  <div class="max-w-5xl mx-auto px-3 sm:px-6 py-6">
     <header class="mb-6 text-center">
       <h1 class="text-2xl sm:text-3xl font-bold">LATAM Coins Leaderboard</h1>
     </header>
@@ -24,14 +24,15 @@
         </div>
 
         <div class="overflow-x-auto bg-white rounded-2xl shadow">
-          <table class="min-w-full text-xs sm:text-sm" id="table">
+          <table class="w-full table-fixed text-xs sm:text-sm" id="table">
             <thead class="bg-gray-100">
               <tr>
-                <th class="px-2 py-2 sm:px-4 sm:py-3 text-left">#</th>
+                <th class="w-6 px-2 py-2 sm:px-4 sm:py-3 text-left">#</th>
                 <th class="px-2 py-2 sm:px-4 sm:py-3 text-left">Ticker</th>
-                <th class="px-2 py-2 sm:px-4 sm:py-3 text-right">Precio</th>
-                <th class="px-2 py-2 sm:px-4 sm:py-3 text-right">24h</th>
-                <th class="px-2 py-2 sm:px-4 sm:py-3 text-right">Market Cap</th>
+                <th class="w-28 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right">Precio</th>
+                <th class="w-16 sm:w-20 px-2 py-2 sm:px-4 sm:py-3 text-right">24h</th>
+                <th class="hidden md:table-cell w-28 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right">Liquidez</th>
+                <th class="w-24 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right">Market Cap</th>
               </tr>
             </thead>
             <tbody id="tbody"></tbody>
@@ -173,29 +174,33 @@
 
       tokens.forEach((t, i) => {
         const tr = document.createElement('tr');
-        tr.className = 'group cursor-pointer hover:bg-gray-50';
+        tr.className = 'group cursor-pointer hover:bg-gray-50 leading-tight';
         const chg = t.change24;
         const chgClass = chg == null ? '' : (chg >= 0 ? 'text-green-600' : 'text-red-600');
         const cap = t.mc ?? t.fdv;
         const badge = t.mc != null ? 'MC' : (t.fdv != null ? 'FDV' : '—');
         tr.innerHTML = `
-          <td class="px-2 py-2 sm:px-4 sm:py-3">${i + 1}</td>
+          <td class="w-6 px-2 py-2 sm:px-4 sm:py-3 text-gray-500">${i + 1}</td>
           <td class="px-2 py-2 sm:px-4 sm:py-3">
             <div class="flex items-center gap-2 min-w-0">
-              <span class="opacity-40 group-hover:opacity-70">▾</span>
               ${t.imageUrl ? `<img src="${t.imageUrl}" class="w-5 h-5 rounded-full"/>` : ''}
-              <span class="font-semibold truncate max-w-[90px] sm:max-w-[140px]">${t.symbol || t.name}</span>
+              <span class="font-semibold truncate max-w-[80px] sm:max-w-[140px]">${t.symbol || t.name}</span>
               <span class="hidden sm:inline text-xs text-gray-500 truncate max-w-[160px]">${t.name}</span>
-              <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-200">${t.chainId}</span>
-              ${t.url ? `<a href="${t.url}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="inline-flex items-center justify-center w-5 h-5 rounded hover:bg-gray-200" title="Ver en Dexscreener">↗</a>` : ''}
-              ${t.xUrl ? `<a href="${t.xUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="inline-flex items-center justify-center w-5 h-5 rounded hover:bg-gray-200" title="X / Twitter">
+              <span class="hidden md:inline-flex text-[10px] px-1.5 py-0.5 rounded bg-gray-200">${t.chainId}</span>
+              ${t.url ? `<a href="${t.url}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200" title="Ver en Dexscreener">↗</a>` : ''}
+              ${t.xUrl ? `<a href="${t.xUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200" title="X / Twitter">
                 <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="currentColor" aria-hidden="true"><path d="M18.244 3.515h3.167l-6.92 7.91 8.11 9.06H19.21l-5.66-6.328-6.465 6.328H3.917l7.405-7.245-7.87-8.726h4.04l5.157 5.723 5.595-5.723Zm-1.112 16.01h1.755L7.94 5.864H6.06l11.072 13.662Z"></path></svg>
               </a>` : ''}
+              ${t.address ? `<button class="copy relative inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200" data-copy="${t.address}" aria-label="Copiar CA" onclick="event.stopPropagation()">
+                <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="currentColor" aria-hidden="true"><path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"></path></svg>
+                <span class="tooltip absolute -top-7 left-1/2 -translate-x-1/2 whitespace-nowrap bg-black text-white text-[10px] px-2 py-0.5 rounded opacity-0 pointer-events-none transition-opacity">Copiado</span>
+              </button>` : ''}
             </div>
           </td>
-          <td class="px-2 py-2 sm:px-4 sm:py-3 text-right">${t.priceUsd != null ? fmtUsdSmart(t.priceUsd) : '—'}</td>
-          <td class="px-2 py-2 sm:px-4 sm:py-3 text-right ${chgClass}">${chg != null ? fmtNum(chg, 2) + '%' : '—'}</td>
-          <td class="px-2 py-2 sm:px-4 sm:py-3 text-right">
+          <td class="w-28 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">${t.priceUsd != null ? fmtUsdSmart(t.priceUsd) : '—'}</td>
+          <td class="w-16 sm:w-20 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap ${chgClass}">${chg != null ? fmtNum(chg, 2) + '%' : '—'}</td>
+          <td class="hidden md:table-cell w-28 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">${t.liq != null ? fmtUsd(t.liq) : '—'}</td>
+          <td class="w-24 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">
             <span class="md:hidden">${cap != null ? fmtUsdCompact(cap) : '—'}</span>
             <span class="hidden md:inline">${cap != null ? fmtUsd(cap) : '—'} <span class="ml-1 text-[10px] px-1 py-0.5 rounded bg-gray-100 border">${badge}</span></span>
           </td>
@@ -206,12 +211,12 @@
         const det = document.createElement('tr');
         det.className = 'details hidden bg-white/70';
         det.innerHTML = `
-          <td colspan="5" class="px-4 py-3">
+          <td colspan="6" class="px-4 py-3">
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs text-gray-700">
               <div><span class="font-medium">Liquidez:</span> ${t.liq != null ? fmtUsd(t.liq) : '—'}</div>
               <div><span class="font-medium">Market Cap:</span> ${cap != null ? fmtUsd(cap) : '—'} (${badge})</div>
               ${t.fdv != null ? `<div><span class="font-medium">FDV:</span> ${fmtUsd(t.fdv)}</div>` : ''}
-              <div class="truncate"><span class="font-medium">Mint:</span> <code class="break-all">${t.address || '—'}</code> <button class="copy border rounded px-2 py-0.5 ml-1" data-copy="${t.address || ''}">Copiar</button></div>
+              <div class="truncate md:whitespace-normal md:overflow-visible"><span class="font-medium">CA:</span> <code class="break-all md:block">${t.address || '—'}</code> <button class="copy relative border rounded px-2 py-0.5 ml-1" data-copy="${t.address || ''}">Copiar<span class="tooltip absolute -top-7 left-1/2 -translate-x-1/2 whitespace-nowrap bg-black text-white text-[10px] px-2 py-0.5 rounded opacity-0 pointer-events-none transition-opacity">Copiado</span></button></div>
               <div class="flex gap-2">
                 ${t.url ? `<a href="${t.url}" target="_blank" rel="noopener" class="border rounded px-3 py-1">Dexscreener</a>` : ''}
                 ${t.xUrl ? `<a href="${t.xUrl}" target="_blank" rel="noopener" class="border rounded px-3 py-1">X/Twitter</a>` : ''}
@@ -261,32 +266,63 @@
     refresh();
     setInterval(refresh, REFRESH_MS);
 
-    // Delegación de eventos: abrir/cerrar detalles y copiar
-    tbody.addEventListener('click', (e) => {
-      const t = e.target;
-      const row = t.closest('tr');
-      if (!row) return;
+    // Copia segura con fallback (Clipboard API -> execCommand)
+    async function copyTextSafe(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch (e) {
+        try {
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          ta.style.position = 'fixed';
+          ta.style.opacity = '0';
+          document.body.appendChild(ta);
+          ta.focus();
+          ta.select();
+          const ok = document.execCommand('copy');
+          document.body.removeChild(ta);
+          return ok;
+        } catch {
+          return false;
+        }
+      }
+    }
 
-      // Si el click fue en un enlace o botón de copiar, no togglear detalles
-      if (t.closest('a') || t.closest('.copy')) return;
+    // Delegación de eventos: COPIAR, abrir/cerrar detalles
+    tbody.addEventListener('click', async (e) => {
+      const copyBtn = e.target.closest('.copy');
+      if (copyBtn) {
+        const text = copyBtn.getAttribute('data-copy') || '';
+        let ok = false;
+        if (text) ok = await copyTextSafe(text);
+        const tip = copyBtn.querySelector('.tooltip');
+        if (tip) {
+          tip.textContent = ok ? 'Copiado' : 'No permitido';
+          tip.classList.remove('opacity-0');
+          tip.classList.add('opacity-100');
+          setTimeout(()=> { tip.classList.add('opacity-0'); tip.textContent = 'Copiado'; }, 1200);
+        }
+        e.stopPropagation();
+        return; // no toggle
+      }
+
+      // Si clic en un enlace, no togglear
+      if (e.target.closest('a')) return;
 
       // Alternar la fila de detalles (siguiente hermano)
+      const row = e.target.closest('tr');
+      if (!row) return;
       const details = row.nextElementSibling;
       if (details && details.classList.contains('details')) {
         details.classList.toggle('hidden');
-      }
-
-      // Copiar mint (botón dentro de detalles)
-      if (t.classList?.contains('copy')) {
-        const text = t.getAttribute('data-copy');
-        if (text) navigator.clipboard.writeText(text);
-        t.textContent = '¡Copiado!';
-        setTimeout(()=> t.textContent = 'Copiar', 1200);
       }
     });
   </script>
 </body>
 </html>
+
+
 
 
 
