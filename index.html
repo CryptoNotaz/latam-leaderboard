@@ -5,12 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>LATAM Coins Leaderboard — Dexscreener</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Evita que el texto salte al abrir/cerrar detalles */
+    .transition-height { transition: height .2s ease; }
+  </style>
 </head>
 <body class="min-h-screen bg-gray-50 text-gray-900">
   <div class="max-w-5xl mx-auto p-6">
     <header class="mb-6 text-center">
-      <h1 class="text-3xl font-bold">LATAM Coins Leaderboard</h1>
-      
+      <h1 class="text-2xl sm:text-3xl font-bold">LATAM Coins Leaderboard</h1>
     </header>
 
     <section class="grid gap-4 items-start">
@@ -21,15 +24,14 @@
         </div>
 
         <div class="overflow-x-auto bg-white rounded-2xl shadow">
-          <table class="min-w-full text-sm" id="table">
+          <table class="min-w-full text-xs sm:text-sm" id="table">
             <thead class="bg-gray-100">
               <tr>
-                <th class="px-4 py-3 text-left">#</th>
-                <th class="px-4 py-3 text-left">Moneda</th>
-                <th class="px-4 py-3 text-right">Precio</th>
-                <th class="px-4 py-3 text-right">Cap (MC/FDV)</th>
-                <th class="px-4 py-3 text-right">Liquidez</th>
-                <th class="px-4 py-3 text-right">24h</th>
+                <th class="px-2 py-2 sm:px-4 sm:py-3 text-left">#</th>
+                <th class="px-2 py-2 sm:px-4 sm:py-3 text-left">Ticker</th>
+                <th class="px-2 py-2 sm:px-4 sm:py-3 text-right">Precio</th>
+                <th class="px-2 py-2 sm:px-4 sm:py-3 text-right">24h</th>
+                <th class="px-2 py-2 sm:px-4 sm:py-3 text-right">Market Cap</th>
               </tr>
             </thead>
             <tbody id="tbody"></tbody>
@@ -52,6 +54,14 @@
     const statusEl = document.getElementById('status');
     const REFRESH_MS = 60000; // auto-refresh cada 60s
 
+    // Lista demo para VER en el canvas (si tokens.json no está disponible aquí)
+    const TOKENS_FALLBACK = [
+      { "chain": "solana", "address": "BS7HxRitaY5ipGfbek1nmatWLbaS9yoWRSEQzCb3pump" },
+      { "chain": "solana", "address": "DsMWZg6mkheTV2XTkbUtWcsXaajTzEkk1TC7o6Fmpump" },
+      { "chain": "solana", "address": "9Uxjbn2TyfEmjaYs1qXiLt3FbE3VDa5UMkvQGZwQpump" },
+      { "chain": "solana", "address": "9RLoB3YZwk9sK78ZhmiSAj8CtPhssuJR1pVR326Vpump" }
+    ];
+
     const USD_QUOTES = ['USD', 'USDC', 'USDT', 'DAI', 'USD1', 'USDE', 'USDX'];
 
     const fmtNum = (n, max = 2) => new Intl.NumberFormat('en-US', { maximumFractionDigits: max }).format(n);
@@ -61,6 +71,16 @@
       if (Math.abs(n) >= 1) { opts.minimumFractionDigits = 2; opts.maximumFractionDigits = 2; }
       else { opts.minimumFractionDigits = 5; opts.maximumFractionDigits = 5; }
       return new Intl.NumberFormat('en-US', opts).format(n);
+    };
+    const fmtUsdCompact = (n) => {
+      try {
+        return new Intl.NumberFormat('en-US', { style:'currency', currency:'USD', notation:'compact', maximumFractionDigits: 2 }).format(n);
+      } catch { // fallback manual
+        const abs = Math.abs(n);
+        const units = [['T',1e12],['B',1e9],['M',1e6],['K',1e3]];
+        for (const [s,v] of units) if (abs >= v) return '$' + (n/v).toFixed(2) + s;
+        return fmtUsd(n);
+      }
     };
 
     // Intenta obtener la URL de X/Twitter desde Dexscreener
@@ -72,16 +92,17 @@
       return byUrl?.url || null;
     }
 
+    // Carga lista de tokens
     async function loadTokenList() {
       try {
         const res = await fetch('./tokens.json?ts=' + Date.now(), { cache: 'no-store' });
         if (!res.ok) throw new Error('No se pudo cargar tokens.json');
         const list = await res.json();
-        return list.map(x => ({ chain: (x.chain||'solana').toLowerCase(), address: x.address }));
+        return list.map(x => ({ chain: (x.chain || 'solana').toLowerCase(), address: x.address }));
       } catch (err) {
-        console.error(err);
-        statusEl.textContent = 'No se pudo cargar tokens.json';
-        return [];
+        console.warn('tokens.json no disponible, usando TOKENS_FALLBACK', err);
+        statusEl.textContent = 'Usando lista demo (canvas); coloca tokens.json en tu repo para producción';
+        return TOKENS_FALLBACK.map(x => ({ chain: x.chain.toLowerCase(), address: x.address }));
       }
     }
 
@@ -136,6 +157,7 @@
       const tokens = rows.map(p => ({
         name: p.baseToken?.name || '—',
         symbol: (p.baseToken?.symbol || '').toUpperCase(),
+        address: p.baseToken?.address || '',
         imageUrl: p.info?.imageUrl || '',
         priceUsd: p.priceUsd ? Number(p.priceUsd) : null,
         mc: (typeof p.marketCap === 'number' ? p.marketCap : null),
@@ -151,38 +173,52 @@
 
       tokens.forEach((t, i) => {
         const tr = document.createElement('tr');
-        tr.className = i % 2 ? 'bg-white' : 'bg-gray-50 hover:bg-gray-100 cursor-pointer';
-        const badge = t.mc != null ? 'MC' : (t.fdv != null ? 'FDV' : '—');
-        const cap = t.mc ?? t.fdv;
+        tr.className = 'group cursor-pointer hover:bg-gray-50';
         const chg = t.change24;
         const chgClass = chg == null ? '' : (chg >= 0 ? 'text-green-600' : 'text-red-600');
+        const cap = t.mc ?? t.fdv;
+        const badge = t.mc != null ? 'MC' : (t.fdv != null ? 'FDV' : '—');
         tr.innerHTML = `
-          <td class="px-4 py-3">${i + 1}</td>
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-2">
+          <td class="px-2 py-2 sm:px-4 sm:py-3">${i + 1}</td>
+          <td class="px-2 py-2 sm:px-4 sm:py-3">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="opacity-40 group-hover:opacity-70">▾</span>
               ${t.imageUrl ? `<img src="${t.imageUrl}" class="w-5 h-5 rounded-full"/>` : ''}
-              <div class="flex items-center gap-2">
-                <span class="font-medium">${t.name}</span>
-                <span class="uppercase text-xs text-gray-500">${t.symbol}</span>
-                <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-200">${t.chainId}</span>
-                ${t.xUrl ? `<a href="${t.xUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="inline-flex items-center justify-center w-5 h-5 rounded hover:bg-gray-200" title="X / Twitter">
-                  <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="currentColor" aria-hidden="true">
-                    <path d="M18.244 3.515h3.167l-6.92 7.91 8.11 9.06H19.21l-5.66-6.328-6.465 6.328H3.917l7.405-7.245-7.87-8.726h4.04l5.157 5.723 5.595-5.723Zm-1.112 16.01h1.755L7.94 5.864H6.06l11.072 13.662Z"></path>
-                  </svg>
-                </a>` : ``}
-              </div>
+              <span class="font-semibold truncate max-w-[90px] sm:max-w-[140px]">${t.symbol || t.name}</span>
+              <span class="hidden sm:inline text-xs text-gray-500 truncate max-w-[160px]">${t.name}</span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-200">${t.chainId}</span>
+              ${t.url ? `<a href="${t.url}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="inline-flex items-center justify-center w-5 h-5 rounded hover:bg-gray-200" title="Ver en Dexscreener">↗</a>` : ''}
+              ${t.xUrl ? `<a href="${t.xUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="inline-flex items-center justify-center w-5 h-5 rounded hover:bg-gray-200" title="X / Twitter">
+                <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="currentColor" aria-hidden="true"><path d="M18.244 3.515h3.167l-6.92 7.91 8.11 9.06H19.21l-5.66-6.328-6.465 6.328H3.917l7.405-7.245-7.87-8.726h4.04l5.157 5.723 5.595-5.723Zm-1.112 16.01h1.755L7.94 5.864H6.06l11.072 13.662Z"></path></svg>
+              </a>` : ''}
             </div>
           </td>
-          <td class="px-4 py-3 text-right">${t.priceUsd != null ? fmtUsdSmart(t.priceUsd) : '—'}</td>
-          <td class="px-4 py-3 text-right">
-            ${cap != null ? fmtUsd(cap) : '—'}
-            <span class="ml-1 text-[10px] px-1 py-0.5 rounded bg-gray-100 border">${badge}</span>
+          <td class="px-2 py-2 sm:px-4 sm:py-3 text-right">${t.priceUsd != null ? fmtUsdSmart(t.priceUsd) : '—'}</td>
+          <td class="px-2 py-2 sm:px-4 sm:py-3 text-right ${chgClass}">${chg != null ? fmtNum(chg, 2) + '%' : '—'}</td>
+          <td class="px-2 py-2 sm:px-4 sm:py-3 text-right">
+            <span class="md:hidden">${cap != null ? fmtUsdCompact(cap) : '—'}</span>
+            <span class="hidden md:inline">${cap != null ? fmtUsd(cap) : '—'} <span class="ml-1 text-[10px] px-1 py-0.5 rounded bg-gray-100 border">${badge}</span></span>
           </td>
-          <td class="px-4 py-3 text-right">${t.liq != null ? fmtUsd(t.liq) : '—'}</td>
-          <td class="px-4 py-3 text-right ${chgClass}">${chg != null ? fmtNum(chg, 2) + '%' : '—'}</td>
         `;
-        tr.addEventListener('click', () => { if (t.url) window.open(t.url, '_blank'); });
         tbody.appendChild(tr);
+
+        // Fila de detalles (acordeón)
+        const det = document.createElement('tr');
+        det.className = 'details hidden bg-white/70';
+        det.innerHTML = `
+          <td colspan="5" class="px-4 py-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs text-gray-700">
+              <div><span class="font-medium">Liquidez:</span> ${t.liq != null ? fmtUsd(t.liq) : '—'}</div>
+              <div><span class="font-medium">Market Cap:</span> ${cap != null ? fmtUsd(cap) : '—'} (${badge})</div>
+              ${t.fdv != null ? `<div><span class="font-medium">FDV:</span> ${fmtUsd(t.fdv)}</div>` : ''}
+              <div class="truncate"><span class="font-medium">Mint:</span> <code class="break-all">${t.address || '—'}</code> <button class="copy border rounded px-2 py-0.5 ml-1" data-copy="${t.address || ''}">Copiar</button></div>
+              <div class="flex gap-2">
+                ${t.url ? `<a href="${t.url}" target="_blank" rel="noopener" class="border rounded px-3 py-1">Dexscreener</a>` : ''}
+                ${t.xUrl ? `<a href="${t.xUrl}" target="_blank" rel="noopener" class="border rounded px-3 py-1">X/Twitter</a>` : ''}
+              </div>
+            </div>
+          </td>`;
+        tbody.appendChild(det);
       });
     }
 
@@ -200,12 +236,59 @@
       }
     }
 
+    // --- Test cases básicos (debug) --- //
+    (function runTests(){
+      try {
+        console.assert(fmtUsdSmart(1.2345) === '$1.23', 'fmtUsdSmart ≥1 debe tener 2 decimales');
+        console.assert(fmtUsdSmart(0.0001234).includes('0.00012'), 'fmtUsdSmart <1 debe tener 5 decimales');
+        console.assert(getXUrl({ socials:[{type:'twitter', url:'https://twitter.com/test'}] }) === 'https://twitter.com/test', 'getXUrl por type');
+        console.assert(getXUrl({ socials:[{url:'https://x.com/test'}] }) === 'https://x.com/test', 'getXUrl por url');
+        // chooseBestPairs: prioriza USD y más liquidez
+        const fake = [
+          { baseToken:{address:'A'}, quoteToken:{symbol:'SOL'}, liquidity:{usd:100}, volume:{h24:1} },
+          { baseToken:{address:'A'}, quoteToken:{symbol:'USDC'}, liquidity:{usd:50}, volume:{h24:1} },
+          { baseToken:{address:'B'}, quoteToken:{symbol:'USDT'}, liquidity:{usd:10}, volume:{h24:1} }
+        ];
+        const chosen = chooseBestPairs(fake);
+        const a = chosen.find(x=>x.baseToken.address==='A');
+        const b = chosen.find(x=>x.baseToken.address==='B');
+        console.assert(a && /USDC/.test(a.quoteToken.symbol),'Debe elegir par USD para A');
+        console.assert(b, 'Debe incluir B');
+      } catch(e){ console.warn('Tests warning:', e); }
+    })();
+
     refreshBtn.addEventListener('click', refresh);
     refresh();
     setInterval(refresh, REFRESH_MS);
+
+    // Delegación de eventos: abrir/cerrar detalles y copiar
+    tbody.addEventListener('click', (e) => {
+      const t = e.target;
+      const row = t.closest('tr');
+      if (!row) return;
+
+      // Si el click fue en un enlace o botón de copiar, no togglear detalles
+      if (t.closest('a') || t.closest('.copy')) return;
+
+      // Alternar la fila de detalles (siguiente hermano)
+      const details = row.nextElementSibling;
+      if (details && details.classList.contains('details')) {
+        details.classList.toggle('hidden');
+      }
+
+      // Copiar mint (botón dentro de detalles)
+      if (t.classList?.contains('copy')) {
+        const text = t.getAttribute('data-copy');
+        if (text) navigator.clipboard.writeText(text);
+        t.textContent = '¡Copiado!';
+        setTimeout(()=> t.textContent = 'Copiar', 1200);
+      }
+    });
   </script>
 </body>
 </html>
+
+
 
 
 
