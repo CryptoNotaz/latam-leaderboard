@@ -186,8 +186,8 @@
               <span class="font-semibold truncate lp-copy" data-copy="${t.address || ''}" title="Mantén presionado para copiar CA">${t.symbol || t.name}</span>
               
               <span class="inline-flex text-[10px] px-1.5 py-0.5 rounded bg-gray-200">${t.chainId}</span>
-              ${t.url ? `<a href="${t.url}" class="inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200" title="Ver en Dexscreener">↗</a>` : ''}
-              ${t.xUrl ? `<a href="${t.xUrl}" class="inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200" title="X / Twitter">
+              ${t.url ? `<a href="${t.url}" class="hidden md:inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200" title="Ver en Dexscreener">↗</a>` : ''}
+              ${t.xUrl ? `<a href="${t.xUrl}" class="hidden md:inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200" title="X / Twitter">
                 <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="currentColor" aria-hidden="true"><path d="M18.244 3.515h3.167l-6.92 7.91 8.11 9.06H19.21l-5.66-6.328-6.465 6.328H3.917l7.405-7.245-7.87-8.726h4.04l5.157 5.723 5.595-5.723Zm-1.112 16.01h1.755L7.94 5.864H6.06l11.072 13.662Z"></path></svg>
               </a>` : ''}
               ${t.address ? `<button class="copy relative shrink-0 hidden sm:inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200" data-copy="${t.address}" aria-label="Copiar CA">
@@ -366,5 +366,4 @@
   </script>
 </body>
 </html>
-
 
