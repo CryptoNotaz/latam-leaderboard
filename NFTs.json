@@ -4,16 +4,9 @@
     "slug": "v1ps",
     "name": "V1PS",
     "image": "./v1ps-logo.png",
-    "supply": 992,
-    "supplyForce": true
-  }
-    {
-    "source": "magiceden",
-    "slug": "gorillae",
-    "name": "Gorillae",
-    "image": "./gorillae-logo",
-    "supply": 3948,
-    "supplyForce": true
+    "supply": 992
   }
 ]
+
+
 
