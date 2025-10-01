@@ -4,6 +4,7 @@
     "slug": "v1ps",
     "name": "V1PS",
     "image": "./v1ps-logo.png",
-    "supply": 992
+    "supply": 992,
+    "supplyForce": true
   }
 ]
