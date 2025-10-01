@@ -6,6 +6,15 @@
     "image": "./v1ps-logo.png",
     "supply": 992,
     "supplyForce": true
+  },
+  {
+    "source": "magiceden",
+    "slug": "gorillae",
+    "name": "Gorillae",
+    "supply": 3948,
+    "supplyForce": true
   }
 ]
+
+
 
