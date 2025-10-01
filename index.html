@@ -395,14 +395,21 @@
         const data = await fetchFromProxy(slugs);
         const rows = list.map(cfg => {
           const d = data[cfg.slug] || {};
+          const floorSOL = d.floorLamports != null ? lamportsToSOL(d.floorLamports) : null;
+          const listed = d.listed ?? null;
+          const vol24hSOL = d.vol24hLamports != null ? lamportsToSOL(d.vol24hLamports) : null;
+          // Supply: prioriza manual (cfg) y convierte a número si viene string; si no hay, usa el del proxy
+          const supCfg = cfg.supply != null ? Number(cfg.supply) : null;
+          const supProxy = d.supply != null ? Number(d.supply) : null;
+          const supply = Number.isFinite(supCfg) ? supCfg : (Number.isFinite(supProxy) ? supProxy : null);
           return {
             slug: cfg.slug,
             name: d.name || cfg.name || cfg.slug,
             image: d.image || cfg.image || '',
-            floorSOL: d.floorLamports != null ? lamportsToSOL(d.floorLamports) : null,
-            listed: d.listed ?? null,
-            vol24hSOL: d.vol24hLamports != null ? lamportsToSOL(d.vol24hLamports) : null,
-            supply: d.supply ?? cfg.supply ?? null,
+            floorSOL,
+            listed,
+            vol24hSOL,
+            supply,
             links: d.links || { me: `https://magiceden.io/marketplace/${cfg.slug}` }
           };
         });
@@ -450,7 +457,7 @@
         const det = document.createElement('tr');
         det.className = 'details hidden bg-white/70';
         det.innerHTML = `
-          <td colspan="5" class="px-4 py-3">
+          <td colspan="6" class="px-4 py-3">
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs text-gray-700">
               <div class="md:col-span-4 flex items-center gap-2 text-sm">
                 ${c.image ? `<img src="${c.image}" class="w-6 h-6 rounded"/>` : ''}
@@ -625,6 +632,7 @@
   </script>
 </body>
 </html>
+
 
 
 
