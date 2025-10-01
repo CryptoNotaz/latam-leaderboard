@@ -5,7 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>LataMarketCap — Dexscreener</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <style>.transition-height{transition:height .2s ease}</style>
+  <style>
+    .transition-height { transition: height .2s ease; }
+  </style>
 </head>
 <body class="min-h-screen bg-gray-50 text-gray-900">
   <div class="max-w-5xl mx-auto px-3 sm:px-6 py-6">
@@ -14,8 +16,8 @@
     </header>
 
     <nav class="mb-4 flex justify-center sm:justify-start gap-2">
-      <button id="tabCoins"    class="px-3 py-1.5 rounded-lg bg-black text-white">Coins</button>
-      <button id="tabNfts"     class="px-3 py-1.5 rounded-lg bg-gray-200">NFTs</button>
+      <button id="tabCoins" class="px-3 py-1.5 rounded-lg bg-black text-white">Coins</button>
+      <button id="tabNfts" class="px-3 py-1.5 rounded-lg bg-gray-200">NFTs</button>
       <button id="tabCreators" class="px-3 py-1.5 rounded-lg bg-gray-200">Creadores</button>
     </nav>
 
@@ -99,229 +101,279 @@
     </footer>
   </div>
 
-<script>
-  // ---------- Helpers comunes ----------
-  const USD_QUOTES = ['USD','USDC','USDT','DAI','USD1','USDE','USDX'];
-  const fmtNum = (n,max=2)=>new Intl.NumberFormat('en-US',{maximumFractionDigits:max}).format(n);
-  const fmtUsd = (n)=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2}).format(n);
-  const fmtUsdSmart=(n)=>{const o={style:'currency',currency:'USD'};if(Math.abs(n)>=1){o.minimumFractionDigits=2;o.maximumFractionDigits=2}else{o.minimumFractionDigits=5;o.maximumFractionDigits=5}return new Intl.NumberFormat('en-US',o).format(n)};
-  const fmtUsdCompact=(n)=>{try{return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',notation:'compact',maximumFractionDigits:2}).format(n)}catch{const a=Math.abs(n);const u=[['T',1e12],['B',1e9],['M',1e6],['K',1e3]];for(const[s,v]of u)if(a>=v)return'$'+(n/v).toFixed(2)+s;return fmtUsd(n)}};
-  const toNum=(v)=>{if(v==null)return null;const n=Number(String(v).replace(/[^0-9.]/g,''));return Number.isFinite(n)?n:null};
+  <script>
+    // ---------- Helpers comunes ----------
+    const USD_QUOTES = ['USD', 'USDC', 'USDT', 'DAI', 'USD1', 'USDE', 'USDX'];
+    const fmtNum = (n, max = 2) => new Intl.NumberFormat('en-US', { maximumFractionDigits: max }).format(n);
+    const fmtUsd = (n) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 }).format(n);
+    const fmtUsdSmart = (n) => { const o={style:'currency',currency:'USD'}; if(Math.abs(n)>=1){o.minimumFractionDigits=2;o.maximumFractionDigits=2}else{o.minimumFractionDigits=5;o.maximumFractionDigits=5} return new Intl.NumberFormat('en-US',o).format(n) };
+    const fmtUsdCompact = (n) => { try { return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',notation:'compact',maximumFractionDigits:2}).format(n) } catch { const a=Math.abs(n),u=[['T',1e12],['B',1e9],['M',1e6],['K',1e3]]; for(const[s,v] of u) if(a>=v) return '$'+(n/v).toFixed(2)+s; return fmtUsd(n) } };
+    const toNum = (v) => { if(v===null||v===undefined) return null; const n=Number(String(v).replace(/[^0-9.]/g,'')); return Number.isFinite(n)?n:null };
+    const lamportsToSOL = (x) => (typeof x === 'number' ? x / 1e9 : null);
+    const fmtSol = (n) => n == null ? '—' : `◎${(Math.abs(n) >= 1 ? n.toFixed(2) : n.toFixed(3))}`;
+    const fmtSolCompact = (n) => n == null ? '—' : `◎${(Math.abs(n) >= 1000 ? (n/1000).toFixed(1)+'K' : (Math.abs(n)>=1?n.toFixed(2):n.toFixed(3)))}`;
 
-  // ---------- Coins ----------
-  const tbody=document.getElementById('tbody');
-  const refreshBtn=document.getElementById('refreshBtn');
-  const statusEl=document.getElementById('status');
-  const REFRESH_MS=60000;
+    // ---------- COINS ----------
+    const tbody = document.getElementById('tbody');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const statusEl = document.getElementById('status');
+    const REFRESH_MS = 60000;
 
-  const lamportsToSOL=(x)=>(typeof x==='number'?x/1e9:null);
-  const fmtSol=(n)=>n==null?'—':`◎${(Math.abs(n)>=1?n.toFixed(2):n.toFixed(3))}`;
-  const fmtSolCompact=(n)=>n==null?'—':`◎${(Math.abs(n)>=1000?(n/1000).toFixed(1)+'K':(Math.abs(n)>=1?n.toFixed(2):n.toFixed(3)))}`;
+    function getXUrl(info){ const s=info?.socials||[]; const byType=s.find(x=>/twitter|x/i.test(x?.type||x?.platform||'')); if(byType?.url) return byType.url; const byUrl=s.find(x=>/twitter\.com|x\.com/i.test(x?.url||'')); return byUrl?.url||null; }
 
-  function getXUrl(info){
-    const s=info?.socials||[];
-    const byType=s.find(t=>/twitter|x/i.test(t?.type||t?.platform||'')); if(byType?.url) return byType.url;
-    const byUrl=s.find(t=>/twitter\.com|x\.com/i.test(t?.url||''));     return byUrl?.url||null;
-  }
-
-  async function loadTokenList(){
-    try{
-      const r=await fetch('./tokens.json?ts='+Date.now(),{cache:'no-store'});
-      if(!r.ok) throw new Error('No tokens.json');
-      const list=await r.json();
-      return list.map(x=>({chain:(x.chain||'solana').toLowerCase(),address:x.address}));
-    }catch(e){
-      console.warn('tokens.json no disponible, usando demo',e);
-      statusEl.textContent='Usando lista demo; sube tokens.json';
-      return [
-        {"chain":"solana","address":"BS7HxRitaY5ipGfbek1nmatWLbaS9yoWRSEQzCb3pump"},
-        {"chain":"solana","address":"DsMWZg6mkheTV2XTkbUtWcsXaajTzEkk1TC7o6Fmpump"},
-        {"chain":"solana","address":"9Uxjbn2TyfEmjaYs1qXiLt3FbE3VDa5UMkvQGZwQpump"},
-        {"chain":"solana","address":"9RLoB3YZwk9sK78ZhmiSAj8CtPhssuJR1pVR326Vpump"}
-      ];
+    async function loadTokenList(){
+      try { const res=await fetch('./tokens.json?ts='+Date.now(),{cache:'no-store'}); if(!res.ok) throw 0; const list=await res.json(); return list.map(x=>({chain:(x.chain||'solana').toLowerCase(),address:x.address})) }
+      catch { statusEl.textContent='Usando lista demo; sube tokens.json'; return TOKENS_FALLBACK.map(x=>({chain:x.chain.toLowerCase(),address:x.address})) }
     }
-  }
-  function groupByChain(items){const m=new Map();for(const it of items){if(!m.has(it.chain))m.set(it.chain,[]);m.get(it.chain).push(it.address)}return m}
-  function chooseBestPairs(pairs){
-    const best=new Map();
-    for(const p of pairs){
-      const base=p?.baseToken?.address; if(!base) continue;
-      const qSym=(p.quoteToken?.symbol||'').toUpperCase();
-      const isUsd=USD_QUOTES.some(u=>qSym.includes(u));
-      const liq=p.liquidity?.usd??0; const vol=p.volume?.h24??0;
-      const score=(isUsd?1:0)*1e12+liq*1e6+vol;
-      const prev=best.get(base); if(!prev||score>prev.__score){p.__score=score;best.set(base,p)}
+    function groupByChain(items){ const m=new Map(); for(const it of items){ if(!m.has(it.chain)) m.set(it.chain,[]); m.get(it.chain).push(it.address) } return m }
+    function chooseBestPairs(pairs){ const best=new Map(); for(const p of pairs){ const base=p?.baseToken?.address; if(!base) continue; const q=(p.quoteToken?.symbol||'').toUpperCase(); const isUsd=USD_QUOTES.some(u=>q.includes(u)); const liq=p.liquidity?.usd??0; const vol=p.volume?.h24??0; const score=(isUsd?1:0)*1e12+liq*1e6+vol; const prev=best.get(base); if(!prev||score>prev.__score){ p.__score=score; best.set(base,p) } } return [...best.values()] }
+    async function fetchByChain(chain,addresses){ const ch=(a,n)=>a.length?[a.slice(0,n),...ch(a.slice(n),n)]:[]; const chunks=ch(addresses,30); const out=[]; for(const addrs of chunks){ const url=`https://api.dexscreener.com/tokens/v1/${encodeURIComponent(chain)}/${addrs.join(',')}`; const r=await fetch(url,{headers:{accept:'application/json'}}); if(!r.ok) throw 0; out.push(...await r.json()) } return out }
+    async function fetchAll(lines){ const groups=groupByChain(lines); const arrays=await Promise.all([...groups.entries()].map(([c,a])=>fetchByChain(c,a))); return chooseBestPairs(arrays.flat()) }
+    function render(rows){
+      tbody.innerHTML='';
+      const tokens=rows.map(p=>({ name:p.baseToken?.name||'—', symbol:(p.baseToken?.symbol||'').toUpperCase(), address:p.baseToken?.address||'', imageUrl:p.info?.imageUrl||'', priceUsd:p.priceUsd?Number(p.priceUsd):null, mc:(typeof p.marketCap==='number'?p.marketCap:null), fdv:(typeof p.fdv==='number'?p.fdv:null), liq:p.liquidity?.usd??null, change24:p.priceChange?.h24??null, xUrl:getXUrl(p.info), chainId:p.chainId, url:p.url }));
+      tokens.sort((a,b)=>((b.mc??b.fdv??0)-(a.mc??a.fdv??0)));
+      tokens.forEach((t,i)=>{
+        const tr=document.createElement('tr'); tr.className='group cursor-pointer hover:bg-gray-50 leading-tight';
+        const ch=t.change24, chClass=ch==null?'':(ch>=0?'text-green-600':'text-red-600'); const cap=t.mc??t.fdv; const badge=t.mc!=null?'MC':(t.fdv!=null?'FDV':'—');
+        tr.innerHTML=`
+          <td class="w-6 px-2 py-2 sm:px-4 sm:py-3 text-gray-500">${i+1}</td>
+          <td class="px-2 py-2 sm:px-4 sm:py-3">
+            <div class="flex items-center gap-1.5 sm:gap-2 min-w-0">
+              ${t.imageUrl?`<img src="${t.imageUrl}" class="w-5 h-5 rounded-full"/>`:''}
+              <span class="font-semibold truncate lp-copy" data-copy="${t.address||''}" title="Mantén presionado para copiar CA">${t.symbol||t.name}</span>
+              <span class="inline-flex text-[10px] px-1.5 py-0.5 rounded bg-gray-200">${t.chainId}</span>
+              ${t.url?`<a href="${t.url}" class="hidden md:inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200" title="Ver en Dexscreener">↗</a>`:''}
+              ${t.xUrl?`<a href="${t.xUrl}" class="hidden md:inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200" title="X / Twitter"><svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="currentColor" aria-hidden="true"><path d="M18.244 3.515h3.167l-6.92 7.91 8.11 9.06H19.21l-5.66-6.328-6.465 6.328H3.917l7.405-7.245-7.87-8.726h4.04l5.157 5.723 5.595-5.723Zm-1.112 16.01h1.755L7.94 5.864H6.06l11.072 13.662Z"></path></svg></a>`:''}
+              ${t.address?`<button class="copy relative shrink-0 hidden sm:inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200" data-copy="${t.address}" aria-label="Copiar CA"><svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="currentColor" aria-hidden="true"><path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"></path></svg><span class="tooltip absolute top-7 right-0 bg-black text-white text-[10px] px-2 py-0.5 rounded opacity-0 pointer-events-none transition-opacity">Copiado</span></button>`:''}
+            </div>
+          </td>
+          <td class="w-28 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">${t.priceUsd!=null?fmtUsdSmart(t.priceUsd):'—'}</td>
+          <td class="w-16 sm:w-20 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap ${chClass}">${ch!=null?fmtNum(ch,2)+'%':'—'}</td>
+          <td class="w-24 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap"><span class="md:hidden">${cap!=null?fmtUsdCompact(cap):'—'}</span><span class="hidden md:inline">${cap!=null?fmtUsd(cap):'—'} <span class="ml-1 text-[10px] px-1 py-0.5 rounded bg-gray-100 border">${badge}</span></span></td>`;
+        tbody.appendChild(tr);
+
+        const det=document.createElement('tr'); det.className='details hidden bg-white/70';
+        det.innerHTML=`
+          <td colspan="5" class="px-4 py-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs text-gray-700">
+              <div class="md:col-span-4 flex items-center gap-2 text-sm">
+                ${t.imageUrl?`<img src="${t.imageUrl}" class="w-5 h-5 rounded-full"/>`:''}
+                <span class="font-semibold">${t.name||'—'}</span>
+                <span class="text-xs text-gray-500 uppercase">${t.symbol}</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-200">${t.chainId}</span>
+              </div>
+              <div class="md:col-span-4 flex flex-wrap items-center gap-2"><span class="font-medium">CA:</span> <code class="font-mono text-xs sm:text-[13px] break-all md:whitespace-nowrap select-all">${t.address||'—'}</code> <button class="copy relative inline-flex items-center gap-1 border rounded px-2 py-0.5 ml-1" data-copy="${t.address||''}">Copiar<span class="tooltip absolute top-7 right-0 bg-black text-white text-[10px] px-2 py-0.5 rounded opacity-0 pointer-events-none transition-opacity">Copiado</span></button></div>
+              <div><span class="font-medium">Liquidez:</span> ${t.liq!=null?fmtUsd(t.liq):'—'}</div>
+              <div><span class="font-medium">Market Cap:</span> ${cap!=null?fmtUsd(cap):'—'} (${badge})</div>
+              ${t.fdv!=null?`<div><span class="font-medium">FDV:</span> ${fmtUsd(t.fdv)}</div>`:''}
+              <div class="flex gap-2">${t.url?`<a href="${t.url}" target="_blank" rel="noopener" class="border rounded px-3 py-1">Dexscreener</a>`:''}${t.xUrl?`<a href="${t.xUrl}" target="_blank" rel="noopener" class="border rounded px-3 py-1">X/Twitter</a>`:''}</div>
+            </div>
+          </td>`;
+        tbody.appendChild(det);
+      });
     }
-    return [...best.values()];
-  }
-  async function fetchByChain(chain,addresses){
-    const chunk=(arr,n)=>arr.length?[arr.slice(0,n),...chunk(arr.slice(n),n)]:[];
-    const chunks=chunk(addresses,30); const out=[];
-    for(const addrs of chunks){
-      const url=`https://api.dexscreener.com/tokens/v1/${encodeURIComponent(chain)}/${addrs.join(',')}`;
-      const r=await fetch(url,{headers:{accept:'application/json'}}); if(!r.ok) throw new Error('Dexscreener '+r.status);
-      out.push(...await r.json());
+    async function refresh(){ try{ statusEl.textContent='Cargando…'; const list=await loadTokenList(); if(!list.length){ tbody.innerHTML=''; statusEl.textContent='Agrega tokens a tokens.json'; return } const pairs=await fetchAll(list); render(pairs); statusEl.textContent=`Actualizado: ${new Date().toLocaleTimeString()} · Auto 60s` } catch { statusEl.textContent='Error al actualizar.' } }
+
+    // demo fallback
+    const TOKENS_FALLBACK=[{"chain":"solana","address":"BS7HxRitaY5ipGfbek1nmatWLbaS9yoWRSEQzCb3pump"},{"chain":"solana","address":"DsMWZg6mkheTV2XTkbUtWcsXaajTzEkk1TC7o6Fmpump"},{"chain":"solana","address":"9Uxjbn2TyfEmjaYs1qXiLt3FbE3VDa5UMkvQGZwQpump"},{"chain":"solana","address":"9RLoB3YZwk9sK78ZhmiSAj8CtPhssuJR1pVR326Vpump"}];
+
+    refreshBtn.addEventListener('click',refresh); refresh(); setInterval(refresh,REFRESH_MS);
+
+    // ---------- NFTs ----------
+    const nftTbody=document.getElementById('nftTbody');
+    const nftStatus=document.getElementById('nftStatus');
+    const nftRefreshBtn=document.getElementById('nftRefreshBtn');
+    const NFT_REFRESH_MS=5*60*1000; let nftTimer=null;
+
+    const ME_PROXY='https://latamcap-me.cryptonotaz.workers.dev';
+    const XINFO_PROXY='https://latamcap-me.cryptonotaz.workers.dev/x';
+
+    const NFTS_FALLBACK=[{chain:'solana',source:'magiceden',slug:'v1ps',name:'V1PS',image:'./v1ps-logo.png'}];
+    function slugFromUrl(url){ if(!url) return null; const m=String(url).match(/\/marketplace\/([^\/?#]+)/i); return m?m[1]:null }
+
+    async function loadNftList(){
+      try{
+        const r=await fetch('./nfts.json?ts='+Date.now(),{cache:'no-store'});
+        if(!r.ok) throw 0;
+        const raw=await r.json();
+        if(!Array.isArray(raw)) throw 0;
+        return raw.map(it=>({ ...it, slug: it.slug || slugFromUrl(it.url) || '', supply: toNum(it.supply), floorSOL: toNum(it.floorSOL), listed: toNum(it.listed), vol24hSOL: toNum(it.vol24hSOL) })).filter(it=>it.slug);
+      }catch{ return NFTS_FALLBACK }
     }
-    return out;
-  }
-  async function fetchAll(lines){
-    const groups=groupByChain(lines);
-    const arrays=await Promise.all([...groups.entries()].map(([chain,addrs])=>fetchByChain(chain,addrs)));
-    return chooseBestPairs(arrays.flat());
-  }
-  function render(rows){
-    tbody.innerHTML='';
-    const tokens=rows.map(p=>({name:p.baseToken?.name||'—',symbol:(p.baseToken?.symbol||'').toUpperCase(),address:p.baseToken?.address||'',imageUrl:p.info?.imageUrl||'',priceUsd:p.priceUsd?Number(p.priceUsd):null,mc:(typeof p.marketCap==='number'?p.marketCap:null),fdv:(typeof p.fdv==='number'?p.fdv:null),liq:p.liquidity?.usd??null,change24:p.priceChange?.h24??null,xUrl:getXUrl(p.info),chainId:p.chainId,url:p.url}));
-    tokens.sort((a,b)=>((b.mc??b.fdv??0)-(a.mc??a.fdv??0)));
-    tokens.forEach((t,i)=>{
-      const tr=document.createElement('tr'); tr.className='group cursor-pointer hover:bg-gray-50 leading-tight';
-      const chg=t.change24; const chgClass=chg==null?'':(chg>=0?'text-green-600':'text-red-600'); const cap=t.mc??t.fdv; const badge=t.mc!=null?'MC':(t.fdv!=null?'FDV':'—');
-      tr.innerHTML=`
-        <td class="w-6 px-2 py-2 sm:px-4 sm:py-3 text-gray-500">${i+1}</td>
-        <td class="px-2 py-2 sm:px-4 sm:py-3">
-          <div class="flex items-center gap-1.5 sm:gap-2 min-w-0">
-            ${t.imageUrl?`<img src="${t.imageUrl}" class="w-5 h-5 rounded-full"/>`:''}
-            <span class="font-semibold truncate lp-copy" data-copy="${t.address||''}" title="Mantén presionado para copiar CA">${t.symbol||t.name}</span>
-            <span class="inline-flex text-[10px] px-1.5 py-0.5 rounded bg-gray-200">${t.chainId}</span>
-            ${t.url?`<a href="${t.url}" class="hidden md:inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200" title="Ver en Dexscreener">↗</a>`:''}
-            ${t.xUrl?`<a href="${t.xUrl}" class="hidden md:inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200" title="X / Twitter"><svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="currentColor"><path d="M18.244 3.515h3.167l-6.92 7.91 8.11 9.06H19.21l-5.66-6.328-6.465 6.328H3.917l7.405-7.245-7.87-8.726h4.04l5.157 5.723 5.595-5.723Zm-1.112 16.01h1.755L7.94 5.864H6.06l11.072 13.662Z"/></svg></a>`:''}
-          </div>
-        </td>
-        <td class="w-28 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">${t.priceUsd!=null?fmtUsdSmart(t.priceUsd):'—'}</td>
-        <td class="w-16 sm:w-20 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap ${chgClass}">${chg!=null?fmtNum(chg,2)+'%':'—'}</td>
-        <td class="w-24 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap"><span class="md:hidden">${cap!=null?fmtUsdCompact(cap):'—'}</span><span class="hidden md:inline">${cap!=null?fmtUsd(cap):'—'} <span class="ml-1 text-[10px] px-1 py-0.5 rounded bg-gray-100 border">${badge}</span></span></td>`;
-      tbody.appendChild(tr);
 
-      const det=document.createElement('tr'); det.className='details hidden bg-white/70';
-      det.innerHTML=`<td colspan="5" class="px-4 py-3">
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs text-gray-700">
-          <div class="md:col-span-4 flex items-center gap-2 text-sm">${t.imageUrl?`<img src="${t.imageUrl}" class="w-5 h-5 rounded-full"/>`:''}<span class="font-semibold">${t.name||'—'}</span><span class="text-xs text-gray-500 uppercase">${t.symbol}</span><span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-200">${t.chainId}</span></div>
-          <div class="md:col-span-4 flex flex-wrap items-center gap-2"><span class="font-medium">CA:</span> <code class="font-mono text-xs sm:text-[13px] break-all md:whitespace-nowrap select-all">${t.address||'—'}</code></div>
-        </div>
-      </td>`;
-      tbody.appendChild(det);
-    });
-  }
-  async function refresh(){try{statusEl.textContent='Cargando…';const list=await loadTokenList();if(!list.length){tbody.innerHTML='';statusEl.textContent='Agrega tokens a tokens.json';return}const pairs=await fetchAll(list);render(pairs);statusEl.textContent=`Actualizado: ${new Date().toLocaleTimeString()} · Auto 60s`}catch(e){console.error(e);statusEl.textContent='Error al actualizar.'}}
-  refreshBtn.addEventListener('click',refresh); refresh(); setInterval(refresh,REFRESH_MS);
+    // Precio de SOL con Fallbacks: Jupiter -> Binance -> CoinGecko
+    async function fetchSolPrice(){
+      try{ const r=await fetch('https://price.jup.ag/v6/price?ids=SOL'); const j=await r.json(); const p=j?.data?.SOL?.price; if(Number.isFinite(p)) return p }catch{}
+      try{ const r=await fetch('https://api.binance.com/api/v3/ticker/price?symbol=SOLUSDT'); const j=await r.json(); const p=Number(j?.price); if(Number.isFinite(p)) return p }catch{}
+      try{ const r=await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd'); const j=await r.json(); const p=j?.solana?.usd; if(Number.isFinite(p)) return p }catch{}
+      return null;
+    }
 
-  // ---------- NFTs ----------
-  const nftTbody=document.getElementById('nftTbody');
-  const nftStatus=document.getElementById('nftStatus');
-  const nftRefreshBtn=document.getElementById('nftRefreshBtn');
-  const NFT_REFRESH_MS=5*60*1000; let nftTimer=null;
-  const ME_PROXY='https://latamcap-me.cryptonotaz.workers.dev';
-  const XINFO_PROXY='https://latamcap-me.cryptonotaz.workers.dev/x';
+    async function fetchFromProxy(slugs){
+      const url=`${ME_PROXY}?slugs=${encodeURIComponent(slugs.join(','))}`;
+      const r=await fetch(url,{headers:{accept:'application/json'}});
+      if(!r.ok) throw 0;
+      return await r.json(); // { slug: {...} }
+    }
 
-  const NFTS_FALLBACK=[{chain:'solana',source:'magiceden',slug:'v1ps',name:'V1PS',image:'./v1ps-logo.png'}];
-  const slugFromUrl=(url)=>{if(!url) return null;const m=url.match(/\/marketplace\/([^\/?#]+)/i);return m?m[1]:null};
-  async function loadNftList(){
-    try{
-      const r=await fetch('./nfts.json?ts='+Date.now(),{cache:'no-store'}); if(!r.ok) throw 0;
-      const raw=await r.json(); if(!Array.isArray(raw)) throw 0;
-      return raw.map(it=>({...it,slug:it.slug||slugFromUrl(it.url)||'',supply:toNum(it.supply),floorSOL:toNum(it.floorSOL),listed:toNum(it.listed),vol24hSOL:toNum(it.vol24hSOL)})).filter(x=>x.slug);
-    }catch{ return NFTS_FALLBACK }
-  }
-  async function fetchSolPrice(){try{const r=await fetch('https://price.jup.ag/v6/price?ids=SOL');const j=await r.json();return j?.data?.SOL?.price??null}catch{return null}}
-  async function fetchFromProxy(slugs){const r=await fetch(`${ME_PROXY}?slugs=${encodeURIComponent(slugs.join(','))}`,{headers:{accept:'application/json'}});if(!r.ok) throw 0;return await r.json()}
-  async function fetchNftsAll(list){
-    const slugs=list.map(it=>it.slug); let proxy={};
-    try{proxy=await fetchFromProxy(slugs)}catch{}
-    const rows=list.map(cfg=>{const d=proxy[cfg.slug]||{};const floorSOL=(cfg.floorSOL!=null?cfg.floorSOL:lamportsToSOL(d.floorLamports));const listed=(cfg.listed!=null?cfg.listed:toNum(d.listed));const vol24hSOL=(cfg.vol24hSOL!=null?cfg.vol24hSOL:lamportsToSOL(d.vol24hLamports));const supply=(cfg.supply!=null?cfg.supply:toNum(d.supply));return{slug:cfg.slug,name:cfg.name||d.name||cfg.slug,image:cfg.image||d.image||'',floorSOL,listed,vol24hSOL,supply,links:cfg.links||d.links||{me:`https://magiceden.io/marketplace/${cfg.slug}`}}});
-    const anyFloor=rows.some(r=>typeof r.floorSOL==='number'); const solUsd=anyFloor?await fetchSolPrice():null;
-    return rows.map(x=>({...x,floorUSD:(solUsd&&typeof x.floorSOL==='number')?x.floorSOL*solUsd:null,mcFloorUSD:(solUsd&&typeof x.floorSOL==='number'&&typeof x.supply==='number')?x.floorSOL*solUsd*x.supply:null}));
-  }
-  function renderNfts(rows){
-    nftTbody.innerHTML='';
-    rows.forEach((c,i)=>{
-      const mc=c.mcFloorUSD??null;
-      const tr=document.createElement('tr');tr.className='group cursor-pointer hover:bg-gray-50 leading-tight';
-      tr.innerHTML=`<td class="w-6 px-2 py-2 sm:px-4 sm:py-3 text-gray-500">${i+1}</td>
-      <td class="px-2 py-2 sm:px-4 sm:py-3"><div class="flex items-center gap-2 min-w-0">${c.image?`<img src="${c.image}" class="w-5 h-5 rounded"/>`:''}<span class="font-semibold truncate">${c.name}</span></div></td>
-      <td class="w-24 sm:w-28 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">${fmtSol(c.floorSOL)} ${c.floorUSD?`<span class='text-gray-500'>(${fmtUsd(c.floorUSD)})</span>`:''}</td>
-      <td class="w-20 sm:w-24 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">${fmtSolCompact(c.vol24hSOL)}</td>
-      <td class="w-20 sm:w-24 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">${c.supply!=null?fmtNum(c.supply,0):'—'}</td>
-      <td class="w-24 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">${mc!=null?fmtUsdCompact(mc):'—'}</td>`;
-      nftTbody.appendChild(tr);
-    });
-  }
-  async function nftRefresh(){try{nftStatus.textContent='Cargando…';const list=await loadNftList();if(!list.length){nftTbody.innerHTML='';nftStatus.textContent='Agrega colecciones a nfts.json';return}const rows=await fetchNftsAll(list);rows.sort((a,b)=>(b.mcFloorUSD??0)-(a.mcFloorUSD??0));renderNfts(rows);nftStatus.textContent=`Actualizado: ${new Date().toLocaleTimeString()} · Auto 5m`}catch(e){console.error(e);nftStatus.textContent='Error al actualizar NFTs.'}}
-  nftRefreshBtn.addEventListener('click',nftRefresh);
+    async function fetchNftsAll(cfgList){
+      const slugs=cfgList.map(it=>it.slug).filter(Boolean);
+      let proxy={}; try{ if(slugs.length) proxy=await fetchFromProxy(slugs) }catch{}
+      const rows=cfgList.map(cfg=>{
+        const d=proxy[cfg.slug]||{};
+        const floorSOL=(cfg.floorSOL!=null?cfg.floorSOL:lamportsToSOL(d.floorLamports));
+        const listed=(cfg.listed!=null?cfg.listed:toNum(d.listed));
+        const vol24hSOL=(cfg.vol24hSOL!=null?cfg.vol24hSOL:lamportsToSOL(d.vol24hLamports));
+        const supply=(cfg.supply!=null?cfg.supply:toNum(d.supply)); // prioriza JSON
+        return { slug: cfg.slug, name: cfg.name || d.name || cfg.slug, image: cfg.image || d.image || '', floorSOL, listed, vol24hSOL, supply, links: cfg.links || d.links || { me:`https://magiceden.io/marketplace/${cfg.slug}` } };
+      });
+      const anyHasFloor=rows.some(r=>typeof r.floorSOL==='number');
+      const solUsd=anyHasFloor?await fetchSolPrice():null;
+      return rows.map(x=>({ ...x, floorUSD: (solUsd && typeof x.floorSOL==='number') ? x.floorSOL*solUsd : null, mcFloorUSD: (solUsd && typeof x.floorSOL==='number' && typeof x.supply==='number') ? x.floorSOL*solUsd*x.supply : null }));
+    }
 
-  // ---------- Creadores ----------
-  const creTbody=document.getElementById('creTbody');
-  const creStatus=document.getElementById('creStatus');
-  const creRefreshBtn=document.getElementById('creRefreshBtn');
-  const CREATORS_REFRESH_MS=60*60*1000; let creTimer=null;
+    function renderNfts(rows){
+      nftTbody.innerHTML='';
+      rows.forEach((c,i)=>{
+        const mc=c.mcFloorUSD??null;
+        const tr=document.createElement('tr'); tr.className='group cursor-pointer hover:bg-gray-50 leading-tight';
+        tr.innerHTML=`
+          <td class="w-6 px-2 py-2 sm:px-4 sm:py-3 text-gray-500">${i+1}</td>
+          <td class="px-2 py-2 sm:px-4 sm:py-3"><div class="flex items-center gap-2 min-w-0">${c.image?`<img src="${c.image}" class="w-5 h-5 rounded"/>`:''}<span class="font-semibold truncate">${c.name}</span></div></td>
+          <td class="w-24 sm:w-28 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">${fmtSol(c.floorSOL)} ${c.floorUSD?`<span class='text-gray-500'>(${fmtUsd(c.floorUSD)})</span>`:''}</td>
+          <td class="w-20 sm:w-24 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">${fmtSolCompact(c.vol24hSOL)}</td>
+          <td class="w-20 sm:w-24 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">${c.supply!=null?fmtNum(c.supply,0):'—'}</td>
+          <td class="w-24 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">${mc!=null?fmtUsdCompact(mc):'—'}</td>`;
+        nftTbody.appendChild(tr);
 
-  const sumFollowers=(f={})=>['x','github','telegram','youtube','tiktok','instagram'].map(k=>Number(f[k]||0)).reduce((a,b)=>a+b,0);
-  function handleFromXUrl(url){if(!url) return null;const m=String(url).match(/(?:x\.com|twitter\.com)\/([^\/?#]+)/i);return m?m[1].replace(/^@/,''):null}
-  async function fetchXInfo(handles){
-    const list=[...new Set(handles)].filter(Boolean); if(!list.length) return {};
-    const r=await fetch(`${XINFO_PROXY}?handles=${encodeURIComponent(list.join(','))}`,{headers:{accept:'application/json'}});
-    if(!r.ok) return {};
-    return await r.json();
-  }
-  async function loadCreators(){try{const r=await fetch('./creators.json?ts='+Date.now(),{cache:'no-store'});if(!r.ok) throw 0;const a=await r.json();return Array.isArray(a)?a:[]}catch{return[]}}
-  async function fetchCreatorsAll(list){
-    const handles=list.map(c=>handleFromXUrl(c.x)).filter(Boolean);
-    let info={}; try{info=await fetchXInfo(handles)}catch{}
-    return list.map(c=>{
-      const h=handleFromXUrl(c.x)||''; const xi=info[h?.toLowerCase()]||{};
-      return {
-        name: c.name||xi.name||h||'—',
-        x: c.x || (h?`https://x.com/${h}`:null),
-        avatar: c.avatar||xi.avatar||null,
-        roles: c.roles||[],
-        followers:{x: toNum(xi.followers) ?? toNum(c.followers?.x) ?? 0},
-        bio: c.bio||''
-      }
-    });
-  }
-  function renderCreators(rows){
-    creTbody.innerHTML='';
-    rows.forEach((c,i)=>{
-      const total=sumFollowers(c.followers);
-      const tr=document.createElement('tr');tr.className='group cursor-pointer hover:bg-gray-50 leading-tight';
-      tr.innerHTML=`<td class="w-6 px-2 py-2 sm:px-4 sm:py-3 text-gray-500">${i+1}</td>
-      <td class="px-2 py-2 sm:px-4 sm:py-3"><div class="flex items-center gap-2 min-w-0">${c.avatar?`<img src="${c.avatar}" class="w-6 h-6 rounded-full"/>`:''}<span class="font-semibold truncate">${c.name}</span>${c.x?`<a class="inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200" target="_blank" rel="noopener" href="${c.x}" title="Perfil en X"><svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="currentColor"><path d="M18.244 3.515h3.167l-6.92 7.91 8.11 9.06H19.21l-5.66-6.328-6.465 6.328H3.917l7.405-7.245-7.87-8.726h4.04l5.157 5.723 5.595-5.723Zm-1.112 16.01h1.755L7.94 5.864H6.06l11.072 13.662Z"/></svg></a>`:''}</div></td>
-      <td class="w-20 sm:w-24 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">${fmtNum(total||c.followers?.x||0,0)}</td>
-      <td class="w-24 sm:w-28 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">${(c.roles||[]).join(', ')||'—'}</td>`;
-      creTbody.appendChild(tr);
-    });
-  }
-  async function creRefresh(){try{creStatus.textContent='Cargando…';const base=await loadCreators();if(!base.length){creTbody.innerHTML='';creStatus.textContent='Agrega perfiles a creators.json';return}const rows=await fetchCreatorsAll(base);rows.sort((a,b)=>(b.followers?.x||0)-(a.followers?.x||0));renderCreators(rows);creStatus.textContent=`Actualizado: ${new Date().toLocaleTimeString()} · Auto 1h`}catch(e){console.error(e);creStatus.textContent='Error al actualizar creadores.'}}
-  creRefreshBtn.addEventListener('click',creRefresh);
+        const det=document.createElement('tr'); det.className='details hidden bg-white/70';
+        det.innerHTML=`
+          <td colspan="6" class="px-4 py-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs text-gray-700">
+              <div class="md:col-span-4 flex items-center gap-2 text-sm">
+                ${c.image?`<img src="${c.image}" class="w-6 h-6 rounded"/>`:''}
+                <span class="font-semibold">${c.name}</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-200">solana</span>
+              </div>
+              <div><span class="font-medium">Floor:</span> ${c.floorUSD?fmtUsd(c.floorUSD)+' · ':''}${fmtSol(c.floorSOL)}</div>
+              <div><span class="font-medium">Listados:</span> ${c.listed??'—'}</div>
+              <div><span class="font-medium">Vol 24h:</span> ${c.vol24hSOL==null?'—':`◎${c.vol24hSOL.toFixed(2)}`}</div>
+              ${c.supply!=null?`<div><span class="font-medium">Supply:</span> ${fmtNum(c.supply,0)}</div>`:''}
+              <div class="flex gap-2">
+                <a href="${c.links.me}" target="_blank" rel="noopener" class="border rounded px-3 py-1">Magic Eden</a>
+                ${c.links.x?`<a href="${c.links.x}" target="_blank" rel="noopener" class="border rounded px-3 py-1">X/Twitter</a>`:''}
+                ${c.links.web?`<a href="${c.links.web}" target="_blank" rel="noopener" class="border rounded px-3 py-1">Web</a>`:''}
+                ${c.links.discord?`<a href="${c.links.discord}" target="_blank" rel="noopener" class="border rounded px-3 py-1">Discord</a>`:''}
+              </div>
+            </div>
+          </td>`;
+        nftTbody.appendChild(det);
+      });
+    }
 
-  // ---------- Tabs ----------
-  const tabCoins=document.getElementById('tabCoins');
-  const tabNfts=document.getElementById('tabNfts');
-  const tabCreators=document.getElementById('tabCreators');
-  const coinsSection=document.getElementById('coins-section');
-  const nftsSection=document.getElementById('nfts-section');
-  const creatorsSection=document.getElementById('creators-section');
+    async function nftRefresh(){ try{ nftStatus.textContent='Cargando…'; const list=await loadNftList(); if(!list.length){ nftTbody.innerHTML=''; nftStatus.textContent='Agrega colecciones a nfts.json'; return } const rowsRaw=await fetchNftsAll(list); const rows=[...rowsRaw].sort((a,b)=>(b.mcFloorUSD??0)-(a.mcFloorUSD??0)||(b.floorUSD??0)-(a.floorUSD??0)||(b.floorSOL??0)-(a.floorSOL??0)); renderNfts(rows); nftStatus.textContent=`Actualizado: ${new Date().toLocaleTimeString()} · Auto 5m` } catch { nftStatus.textContent='Error al actualizar NFTs.' } }
 
-  function setActiveTab(tab){
-    coinsSection.classList.toggle('hidden',tab!=='coins');
-    nftsSection.classList.toggle('hidden',tab!=='nfts');
-    creatorsSection.classList.toggle('hidden',tab!=='creators');
-    const on=['bg-black','text-white'], off=['bg-gray-200'];
-    [tabCoins,tabNfts,tabCreators].forEach(b=>b.classList.remove(...on,...off));
-    (tab==='coins'?tabCoins:tab==='nfts'?tabNfts:tabCreators).classList.add(...on);
-    (tab!=='coins'?tabCoins:tabNfts).classList.add(...off); if(tab!=='creators')tabCreators.classList.add(...off);
-    clearInterval(nftTimer); clearInterval(creTimer);
-    if(tab==='nfts'){ if(!window.__nftInit){nftRefresh();window.__nftInit=true} nftTimer=setInterval(nftRefresh,NFT_REFRESH_MS) }
-    if(tab==='creators'){ if(!window.__creInit){creRefresh();window.__creInit=true} creTimer=setInterval(creRefresh,CREATORS_REFRESH_MS) }
-  }
-  tabCoins.addEventListener('click',()=>setActiveTab('coins'));
-  tabNfts.addEventListener('click',()=>setActiveTab('nfts'));
-  tabCreators.addEventListener('click',()=>setActiveTab('creators'));
+    nftRefreshBtn.addEventListener('click',nftRefresh);
+    nftTbody.addEventListener('click',(e)=>{ if(e.target.closest('a')) return; const row=e.target.closest('tr'); if(!row) return; const det=row.nextElementSibling; if(det&&det.classList.contains('details')) det.classList.toggle('hidden') });
 
-  // init
-  setActiveTab('coins');
-</script>
+    // ---------- CREADORES ----------
+    const creTbody=document.getElementById('creTbody');
+    const creStatus=document.getElementById('creStatus');
+    const creRefreshBtn=document.getElementById('creRefreshBtn');
+    const CREATORS_REFRESH_MS=60*60*1000; let creTimer=null;
+    const sumFollowers=(f={})=>['x','github','telegram','youtube','tiktok','instagram'].map(k=>Number(f[k]||0)).reduce((a,b)=>a+b,0);
+
+    function handleFromXUrl(url){ if(!url) return null; const m=String(url).match(/(?:x\.com|twitter\.com)\/([^\/?#]+)/i); return m?m[1].replace(/^@/,''):null }
+    async function fetchXInfo(handles){ const list=[...new Set(handles)].filter(Boolean); if(!list.length) return {}; const url=`${XINFO_PROXY}?handles=${encodeURIComponent(list.join(','))}`; const r=await fetch(url,{headers:{accept:'application/json'}}); if(!r.ok) throw 0; return await r.json() }
+
+    async function loadCreators(){ try{ const r=await fetch('./creators.json?ts='+Date.now(),{cache:'no-store'}); if(!r.ok) throw 0; const arr=await r.json(); return Array.isArray(arr)?arr:[] } catch { return [] } }
+
+    async function fetchCreatorsAll(list){
+      const handles=list.map(c=>handleFromXUrl(c.x)).filter(Boolean);
+      let info={}; try{ info=await fetchXInfo(handles) }catch{}
+      return list.map(c=>{
+        const h=handleFromXUrl(c.x); const k=h?h.toLowerCase():null; const xi=k?info[k]:null;
+        return { name: c.name || xi?.name || h || '—', x: c.x || (h?`https://x.com/${h}`:null), avatar: c.avatar || xi?.avatar || null, roles:c.roles||[], followers:{ x: toNum(xi?.followers) ?? toNum(c.followers?.x) ?? 0 }, bio:c.bio||'', github:c.github||null, telegram:c.telegram||null, youtube:c.youtube||null, tiktok:c.tiktok||null, instagram:c.instagram||null };
+      });
+    }
+
+    function renderCreators(rows){
+      creTbody.innerHTML='';
+      rows.forEach((c,i)=>{
+        const total=sumFollowers(c.followers);
+        const tr=document.createElement('tr'); tr.className='group cursor-pointer hover:bg-gray-50 leading-tight';
+        tr.innerHTML=`
+          <td class="w-6 px-2 py-2 sm:px-4 sm:py-3 text-gray-500">${i+1}</td>
+          <td class="px-2 py-2 sm:px-4 sm:py-3">
+            <div class="flex items-center gap-2 min-w-0">
+              ${c.avatar?`<img src="${c.avatar}" class="w-6 h-6 rounded-full"/>`:''}
+              <span class="font-semibold truncate">${c.name}</span>
+              ${c.x?`<a class="inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200" target="_blank" rel="noopener" href="${c.x}" title="Perfil en X"><svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="currentColor" aria-hidden="true"><path d="M18.244 3.515h3.167l-6.92 7.91 8.11 9.06H19.21l-5.66-6.328-6.465 6.328H3.917l7.405-7.245-7.87-8.726h4.04l5.157 5.723 5.595-5.723Zm-1.112 16.01h1.755L7.94 5.864H6.06l11.072 13.662Z"></path></svg></a>`:''}
+            </div>
+          </td>
+          <td class="w-20 sm:w-24 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">${fmtNum(total||c.followers?.x||0,0)}</td>
+          <td class="w-24 sm:w-28 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">${(c.roles||[]).join(', ')||'—'}</td>`;
+        creTbody.appendChild(tr);
+
+        const det=document.createElement('tr'); det.className='details hidden bg-white/70';
+        det.innerHTML=`
+          <td colspan="4" class="px-4 py-3">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs text-gray-700">
+              <div class="md:col-span-3">${c.bio?c.bio:''}</div>
+              <div><span class="font-medium">Seguidores totales:</span> ${fmtNum(total||c.followers?.x||0,0)}</div>
+              <div><span class="font-medium">Roles:</span> ${(c.roles||[]).join(', ')||'—'}</div>
+              <div class="flex gap-2 flex-wrap">
+                ${c.x?`<a class="border rounded px-3 py-1" target="_blank" rel="noopener" href="${c.x}">X/Twitter</a>`:''}
+                ${c.github?`<a class="border rounded px-3 py-1" target="_blank" rel="noopener" href="${c.github}">GitHub</a>`:''}
+                ${c.telegram?`<a class="border rounded px-3 py-1" target="_blank" rel="noopener" href="${c.telegram}">Telegram</a>`:''}
+                ${c.youtube?`<a class="border rounded px-3 py-1" target="_blank" rel="noopener" href="${c.youtube}">YouTube</a>`:''}
+                ${c.tiktok?`<a class="border rounded px-3 py-1" target="_blank" rel="noopener" href="${c.tiktok}">TikTok</a>`:''}
+                ${c.instagram?`<a class="border rounded px-3 py-1" target="_blank" rel="noopener" href="${c.instagram}">Instagram</a>`:''}
+              </div>
+            </div>
+          </td>`;
+        creTbody.appendChild(det);
+      });
+    }
+
+    async function creRefresh(){ try{ creStatus.textContent='Cargando…'; const base=await loadCreators(); if(!base.length){ creTbody.innerHTML=''; creStatus.textContent='Agrega perfiles a creators.json'; return } const rowsRaw=await fetchCreatorsAll(base); const rows=[...rowsRaw].sort((a,b)=>(b.followers?.x||0)-(a.followers?.x||0)); renderCreators(rows); creStatus.textContent=`Actualizado: ${new Date().toLocaleTimeString()} · Auto 1h` } catch { creStatus.textContent='Error al actualizar creadores.' } }
+
+    // Tabs
+    const tabCoins=document.getElementById('tabCoins');
+    const tabNfts=document.getElementById('tabNfts');
+    const tabCreators=document.getElementById('tabCreators');
+    const coinsSection=document.getElementById('coins-section');
+    const nftsSection=document.getElementById('nfts-section');
+    const creatorsSection=document.getElementById('creators-section');
+
+    function setActiveTab(tab){
+      coinsSection.classList.toggle('hidden',tab!=='coins');
+      nftsSection.classList.toggle('hidden',tab!=='nfts');
+      creatorsSection.classList.toggle('hidden',tab!=='creators');
+      const on=['bg-black','text-white'], off=['bg-gray-200'];
+      [tabCoins,tabNfts,tabCreators].forEach(b=>b?.classList.remove(...on,...off));
+      if(tab==='coins'){ tabCoins.classList.add(...on); tabNfts.classList.add(...off); tabCreators.classList.add(...off) }
+      if(tab==='nfts'){ tabNfts.classList.add(...on); tabCoins.classList.add(...off); tabCreators.classList.add(...off); clearInterval(nftTimer); if(!window.__nftInit){ nftRefresh(); window.__nftInit=true } nftTimer=setInterval(nftRefresh,NFT_REFRESH_MS) }
+      if(tab==='creators'){ tabCreators.classList.add(...on); tabCoins.classList.add(...off); tabNfts.classList.add(...off); clearInterval(creTimer); if(!window.__creInit){ creRefresh(); window.__creInit=true } creTimer=setInterval(creRefresh,CREATORS_REFRESH_MS) }
+    }
+    tabCoins.addEventListener('click',()=>setActiveTab('coins'));
+    tabNfts.addEventListener('click',()=>setActiveTab('nfts'));
+    tabCreators.addEventListener('click',()=>setActiveTab('creators'));
+
+    // Copiar CA + long-press
+    async function copyTextSafe(text){ try{ await navigator.clipboard.writeText(text); return true }catch{ try{ const ta=document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.focus(); ta.select(); const ok=document.execCommand('copy'); document.body.removeChild(ta); return ok }catch{ return false } } }
+    let lpTimer=null, suppressClickUntil=0;
+    function showToastNear(el,txt){ try{ const r=el.getBoundingClientRect(); const tip=document.createElement('div'); tip.textContent=txt; tip.style.position='fixed'; tip.style.left=(r.left+window.scrollX)+'px'; tip.style.top=(r.bottom+window.scrollY+6)+'px'; tip.className='z-50 bg-black text-white text-[10px] px-2 py-0.5 rounded shadow'; document.body.appendChild(tip); setTimeout(()=>tip.remove(),900) }catch{} }
+    function lpStart(e){ const t=e.target.closest('.lp-copy'); if(!t) return; if(lpTimer) clearTimeout(lpTimer); lpTimer=setTimeout(async()=>{ lpTimer=null; const text=t.getAttribute('data-copy')||''; if(!text) return; const ok=await copyTextSafe(text); showToastNear(t,ok?'Copiado':'No permitido'); suppressClickUntil=Date.now()+400 },550) }
+    function lpEnd(){ if(lpTimer){ clearTimeout(lpTimer); lpTimer=null } }
+    tbody.addEventListener('touchstart',lpStart,{passive:true}); tbody.addEventListener('mousedown',lpStart);
+    ['touchend','touchcancel','mouseup','mouseleave'].forEach(ev=>tbody.addEventListener(ev,lpEnd));
+    tbody.addEventListener('click',async(e)=>{ const btn=e.target.closest('.copy'); if(btn){ const text=btn.getAttribute('data-copy')||''; let ok=false; if(text) ok=await copyTextSafe(text); if(!ok&&window.top!==window.self&&text){ try{ window.prompt('Copiar CA (selecciona y copia):',text); ok=true }catch{} } const tip=btn.querySelector('.tooltip'); if(tip){ tip.textContent=ok?'Copiado':'No permitido'; tip.classList.remove('opacity-0'); tip.classList.add('opacity-100'); setTimeout(()=>{ tip.classList.add('opacity-0'); tip.classList.remove('opacity-100'); tip.textContent='Copiado' },1200) } e.stopPropagation(); return } if(e.target.closest('a')) return; if(Date.now()<suppressClickUntil) return; const row=e.target.closest('tr'); if(!row) return; const det=row.nextElementSibling; if(det&&det.classList.contains('details')) det.classList.toggle('hidden') });
+
+    // Init
+    setActiveTab('coins');
+  </script>
 </body>
 </html>
-
-
 
