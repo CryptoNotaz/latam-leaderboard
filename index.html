@@ -328,6 +328,46 @@
 
     const sumFollowers = (f={}) => ['x','github','telegram','youtube','tiktok','instagram'].map(k => Number(f[k]||0)).reduce((a,b)=>a+b,0);
 
+    // ====== Creadores: utilidades para obtener datos de X a partir del handle ======
+    function handleFromXUrl(url){
+      if(!url) return null;
+      const m = String(url).match(/(?:x\.com|twitter\.com)\/([^\/?#]+)/i);
+      return m ? m[1].replace(/^@/, '') : null;
+    }
+
+    async function fetchXInfo(handles){
+      const list = [...new Set(handles)].filter(Boolean);
+      if(!list.length) return {};
+      const url = `${XINFO_PROXY}?handles=${encodeURIComponent(list.join(','))}`;
+      const r = await fetch(url, { headers:{'accept':'application/json'} });
+      if(!r.ok) throw new Error('X proxy error ' + r.status);
+      return await r.json(); // { handleLower: {handle,name,followers,avatar,verified} }
+    }
+
+    async function fetchCreatorsAll(list){
+      const handles = list.map(c=>handleFromXUrl(c.x)).filter(Boolean);
+      let info = {};
+      try{ info = await fetchXInfo(handles); }catch(e){ console.warn(e); }
+      return list.map(c=>{
+        const h = handleFromXUrl(c.x);
+        const key = h ? h.toLowerCase() : null;
+        const xi = key ? info[key] : null;
+        return {
+          name: c.name || xi?.name || h || '—',
+          x: c.x || (h ? `https://x.com/${h}` : null),
+          avatar: c.avatar || xi?.avatar || null,
+          roles: c.roles||[],
+          followers: { x: toNum(xi?.followers) ?? toNum(c.followers?.x) ?? 0 },
+          bio: c.bio || '',
+          github: c.github||null,
+          telegram: c.telegram||null,
+          youtube: c.youtube||null,
+          tiktok: c.tiktok||null,
+          instagram: c.instagram||null
+        };
+      });
+    }
+
     async function loadCreators(){ try{ const r = await fetch('./creators.json?ts='+Date.now(), {cache:'no-store'}); if(!r.ok) throw new Error('No creators.json'); const arr = await r.json(); return Array.isArray(arr) ? arr : []; }catch(e){ console.warn('Sin creators.json', e); return []; } }
 
     function renderCreators(rows){
@@ -449,6 +489,8 @@
   </script>
 </body>
 </html>
+
+
 
 
 
