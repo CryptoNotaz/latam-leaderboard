@@ -327,7 +327,7 @@
     // MVP sin llamadas a API: lista manual desde nfts.json
     // Ejemplo nfts.json:
     // [
-    //   { "chain":"solana", "source":"magiceden", "slug":"v1ps", "name":"V1PS", "image":"./v1ps-logo.png", "floorSOL": 1.23, "supply": 1000 }
+    //   { "chain":"solana", "source":"magiceden", "slug":"v1ps", "name":"V1PS", "image":"./v1ps-logo.png", "floorSOL": 1.23, "supply": 1000, "supplyForce": true }
     // ]
     const NFTS_FALLBACK = [{ chain:'solana', source:'magiceden', slug:'v1ps', name:'V1PS', image:'./v1ps-logo.png' }];
 
@@ -401,7 +401,13 @@
           // Supply: prioriza manual (cfg) y convierte a número si viene string; si no hay, usa el del proxy
           const supCfg = cfg.supply != null ? Number(cfg.supply) : null;
           const supProxy = d.supply != null ? Number(d.supply) : null;
-          const supply = Number.isFinite(supCfg) ? supCfg : (Number.isFinite(supProxy) ? supProxy : null);
+          const forceSupply = (cfg.supplyForce === true || cfg.supplyForce === 'true');
+          let supply = null;
+          if (forceSupply && Number.isFinite(supCfg)) {
+            supply = supCfg; // forzar supply manual
+          } else {
+            supply = Number.isFinite(supCfg) ? supCfg : (Number.isFinite(supProxy) ? supProxy : null);
+          }
           return {
             slug: cfg.slug,
             name: d.name || cfg.name || cfg.slug,
@@ -632,6 +638,7 @@
   </script>
 </body>
 </html>
+
 
 
 
