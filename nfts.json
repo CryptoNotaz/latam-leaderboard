@@ -9,12 +9,20 @@
   },
   {
     "source": "magiceden",
-    "slug": "gorillae",
+    "slug": "neo_spike_gamefi",
+    "name": "NEO SPIKE PLAY TO EARS",
+    "supply": 6,
+    "supplyForce": true
+  },
+  {
+    "source": "magiceden",
+    "slug": "Gorillae",
     "name": "Gorillae",
     "supply": 3948,
     "supplyForce": true
   }
 ]
+
 
 
 
