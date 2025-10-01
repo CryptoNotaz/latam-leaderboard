@@ -16,7 +16,12 @@
       <h1 class="text-2xl sm:text-3xl font-bold">LATAM Coins Leaderboard</h1>
     </header>
 
-    <section class="grid gap-4 items-start">
+    <nav class="mb-4 flex justify-center sm:justify-start gap-2">
+      <button id="tabCoins" class="px-3 py-1.5 rounded-lg bg-black text-white">Coins</button>
+      <button id="tabNfts" class="px-3 py-1.5 rounded-lg bg-gray-200">NFTs</button>
+    </nav>
+
+    <section id="coins-section" class="grid gap-4 items-start">
       <div>
         <div class="flex items-center gap-3 mb-3 justify-center sm:justify-start">
           <button id="refreshBtn" class="px-4 py-2 rounded-xl bg-black text-white font-medium shadow hover:opacity-90 active:opacity-80">Actualizar</button>
@@ -40,6 +45,31 @@
       </div>
     </section>
 
+    <!-- NFTS SECTION -->
+    <section id="nfts-section" class="grid gap-4 items-start hidden">
+      <div>
+        <div class="flex items-center gap-3 mb-3 justify-center sm:justify-start">
+          <button id="nftRefreshBtn" class="px-4 py-2 rounded-xl bg-black text-white font-medium shadow hover:opacity-90 active:opacity-80">Actualizar</button>
+          <span id="nftStatus" class="text-sm text-gray-600"></span>
+        </div>
+        <div class="overflow-x-auto bg-white rounded-2xl shadow">
+          <table class="w-full table-auto text-xs sm:text-sm">
+            <thead class="bg-gray-100 sticky top-0 z-10">
+              <tr>
+                <th class="w-6 px-2 py-2 sm:px-4 sm:py-3 text-left">#</th>
+                <th class="px-2 py-2 sm:px-4 sm:py-3 text-left">Colección</th>
+                <th class="w-24 sm:w-28 px-2 py-2 sm:px-4 sm:py-3 text-right">Floor</th>
+                <th class="w-20 sm:w-24 px-2 py-2 sm:px-4 sm:py-3 text-right">24h Vol</th>
+                <th class="w-20 sm:w-24 px-2 py-2 sm:px-4 sm:py-3 text-right">Supply</th>
+                <th class="w-24 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right">MC (floor)</th>
+              </tr>
+            </thead>
+            <tbody id="nftTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
     <footer class="mt-10 text-xs text-gray-500">
       <div class="flex items-center gap-2 justify-center sm:justify-start">
         <img src="./v1ps-logo.png" alt="V1PS" class="w-4 h-4 rounded">
@@ -53,6 +83,21 @@
     const refreshBtn = document.getElementById('refreshBtn');
     const statusEl = document.getElementById('status');
     const REFRESH_MS = 60000; // auto-refresh cada 60s
+    // Tabs & sections
+    const tabCoins = document.getElementById('tabCoins');
+    const tabNfts  = document.getElementById('tabNfts');
+    const coinsSection = document.getElementById('coins-section');
+    const nftsSection  = document.getElementById('nfts-section');
+    // NFTs DOM
+    const nftTbody = document.getElementById('nftTbody');
+    const nftStatus = document.getElementById('nftStatus');
+    const nftRefreshBtn = document.getElementById('nftRefreshBtn');
+    // NFTs refresh cada 5 min cuando la pestaña está activa
+    const NFT_REFRESH_MS = 5 * 60 * 1000;
+    let nftTimer = null;
+    // URL del proxy (Cloudflare Worker/Netlify). Reemplázala cuando lo tengas desplegado.
+    // Ejemplo: const ME_PROXY = 'https://tu-worker.workers.dev/nfts';
+    const ME_PROXY = 'https://latamcap-me.cryptonotaz.workers.dev';
 
     // Lista demo para VER en el canvas (si tokens.json no está disponible aquí)
     const TOKENS_FALLBACK = [
@@ -82,6 +127,11 @@
         return fmtUsd(n);
       }
     };
+
+    // ------- NFTs helpers -------
+    const lamportsToSOL = (x) => (typeof x === 'number' ? x / 1e9 : null);
+    const fmtSol = (n) => n == null ? '—' : `◎${(Math.abs(n) >= 1 ? n.toFixed(2) : n.toFixed(3))}`;
+    const fmtSolCompact = (n) => n == null ? '—' : `◎${(Math.abs(n) >= 1000 ? (n/1000).toFixed(1)+'K' : (Math.abs(n)>=1?n.toFixed(2):n.toFixed(3)))}`;
 
     // Intenta obtener la URL de X/Twitter desde Dexscreener
     function getXUrl(info) {
@@ -210,7 +260,7 @@
         const det = document.createElement('tr');
         det.className = 'details hidden bg-white/70';
         det.innerHTML = `
-          <td colspan="5" class="px-4 py-3">
+          <td colspan="6" class="px-4 py-3">
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs text-gray-700">
               <div class="md:col-span-4 flex items-center gap-2 text-sm"><!-- header detalles con nombre completo -->
                 ${t.imageUrl ? `<img src="${t.imageUrl}" class="w-5 h-5 rounded-full"/>` : ''}
@@ -253,6 +303,8 @@
         console.assert(fmtUsdSmart(0.0001234).includes('0.00012'), 'fmtUsdSmart <1 debe tener 5 decimales');
         console.assert(getXUrl({ socials:[{type:'twitter', url:'https://twitter.com/test'}] }) === 'https://twitter.com/test', 'getXUrl por type');
         console.assert(getXUrl({ socials:[{url:'https://x.com/test'}] }) === 'https://x.com/test', 'getXUrl por url');
+        // NFTs helpers
+        console.assert(lamportsToSOL(1e9) === 1, 'lamportsToSOL 1e9 -> 1 SOL');
         // chooseBestPairs: prioriza USD y más liquidez
         const fake = [
           { baseToken:{address:'A'}, quoteToken:{symbol:'SOL'}, liquidity:{usd:100}, volume:{h24:1} },
@@ -270,6 +322,213 @@
     refreshBtn.addEventListener('click', refresh);
     refresh();
     setInterval(refresh, REFRESH_MS);
+
+    // ------- NFTs: data sources (Magic Eden + Jupiter) -------
+    // MVP sin llamadas a API: lista manual desde nfts.json
+    // Ejemplo nfts.json:
+    // [
+    //   { "chain":"solana", "source":"magiceden", "slug":"v1ps", "name":"V1PS", "image":"./v1ps-logo.png", "floorSOL": 1.23, "supply": 1000 }
+    // ]
+    const NFTS_FALLBACK = [{ chain:'solana', source:'magiceden', slug:'v1ps', name:'V1PS', image:'./v1ps-logo.png' }];
+
+    function slugFromUrl(url){
+      if (!url) return null;
+      const m = url.match(/\/marketplace\/([^\/?#]+)/i);
+      return m ? m[1] : null;
+    }
+
+    async function loadNftList(){
+      try {
+        const r = await fetch('./nfts.json?ts=' + Date.now(), { cache:'no-store' });
+        if (!r.ok) throw new Error('No nfts.json');
+        const raw = await r.json();
+        // Normaliza: permite usar url en lugar de slug
+        return (raw||[]).map(it => ({
+          ...it,
+          slug: it.slug || slugFromUrl(it.url) || '',
+        })).filter(it => it.slug);
+      } catch(e){
+        console.warn('nfts.json no disponible, usando NFTS_FALLBACK');
+        return NFTS_FALLBACK;
+      }
+    }
+
+    async function fetchSolPrice(){
+      try {
+        const r = await fetch('https://price.jup.ag/v6/price?ids=SOL');
+        const j = await r.json();
+        return j?.data?.SOL?.price ?? null;
+      } catch { return null; }
+    }
+
+    // Normalizador: NO llama a Magic Eden; toma campos del config y arma el objeto
+    async function fetchMECollection(cfg){
+      const slug = cfg.slug;
+      return {
+        slug,
+        name: cfg.name || slug,
+        image: cfg.image || '',
+        floorSOL: (typeof cfg.floorSOL === 'number') ? cfg.floorSOL : null,
+        listed: (typeof cfg.listed === 'number') ? cfg.listed : null,
+        vol24hSOL: (typeof cfg.vol24hSOL === 'number') ? cfg.vol24hSOL : null,
+        supply: (typeof cfg.supply === 'number') ? cfg.supply : null,
+        links: {
+          me: slug ? `https://magiceden.io/marketplace/${slug}` : (cfg.links?.me || null),
+          x: cfg.x || cfg.links?.x || null,
+          web: cfg.web || cfg.links?.web || null,
+          discord: cfg.discord || cfg.links?.discord || null
+        }
+      };
+    }
+
+    async function fetchFromProxy(slugs){
+      const url = `${ME_PROXY}?slugs=${encodeURIComponent(slugs.join(','))}`;
+      const r = await fetch(url, { headers:{'accept':'application/json'} });
+      if (!r.ok) throw new Error('Proxy ME error ' + r.status);
+      return await r.json(); // { slug: {name,image,floorLamports,listed,vol24hLamports,supply,links} }
+    }
+
+    async function fetchNftsAll(list){
+      const slugs = list.map(it => it.slug).filter(Boolean);
+      if (ME_PROXY && slugs.length) {
+        // Datos REALES desde proxy
+        const data = await fetchFromProxy(slugs);
+        const rows = list.map(cfg => {
+          const d = data[cfg.slug] || {};
+          return {
+            slug: cfg.slug,
+            name: d.name || cfg.name || cfg.slug,
+            image: d.image || cfg.image || '',
+            floorSOL: d.floorLamports != null ? lamportsToSOL(d.floorLamports) : null,
+            listed: d.listed ?? null,
+            vol24hSOL: d.vol24hLamports != null ? lamportsToSOL(d.vol24hLamports) : null,
+            supply: d.supply ?? cfg.supply ?? null,
+            links: d.links || { me: `https://magiceden.io/marketplace/${cfg.slug}` }
+          };
+        });
+        const anyHasFloor = rows.some(r => typeof r.floorSOL === 'number');
+        const solUsd = anyHasFloor ? await fetchSolPrice() : null;
+        return rows.map(x => ({
+          ...x,
+          floorUSD: (solUsd && typeof x.floorSOL === 'number') ? x.floorSOL * solUsd : null,
+          mcFloorUSD: (solUsd && typeof x.floorSOL === 'number' && typeof x.supply === 'number') ? x.floorSOL * solUsd * x.supply : null
+        }));
+      }
+      // Fallback manual (sin proxy)
+      const rows = [];
+      for (const it of list) rows.push(await fetchMECollection(it));
+      const anyHasFloor = rows.some(r => typeof r.floorSOL === 'number');
+      const solUsd = anyHasFloor ? await fetchSolPrice() : null;
+      return rows.map(x => ({
+        ...x,
+        floorUSD: (solUsd && typeof x.floorSOL === 'number') ? x.floorSOL * solUsd : null,
+        mcFloorUSD: (solUsd && typeof x.floorSOL === 'number' && typeof x.supply === 'number') ? x.floorSOL * solUsd * x.supply : null
+      }));
+    }
+
+    function renderNfts(rows){
+      nftTbody.innerHTML = '';
+      rows.forEach((c,i)=>{
+        const tr = document.createElement('tr');
+        tr.className = 'group cursor-pointer hover:bg-gray-50 leading-tight';
+        const mc = c.mcFloorUSD ?? null;
+        tr.innerHTML = `
+          <td class="w-6 px-2 py-2 sm:px-4 sm:py-3 text-gray-500">${i+1}</td>
+          <td class="px-2 py-2 sm:px-4 sm:py-3">
+            <div class="flex items-center gap-2 min-w-0">
+              ${c.image ? `<img src="${c.image}" class="w-5 h-5 rounded"/>` : ''}
+              <span class="font-semibold truncate">${c.name}</span>
+            </div>
+          </td>
+          <td class="w-24 sm:w-28 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">${fmtSol(c.floorSOL)} ${c.floorUSD? `<span class='text-gray-500'>(${fmtUsd(c.floorUSD)})</span>` : ''}</td>
+          <td class="w-20 sm:w-24 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">${fmtSolCompact(c.vol24hSOL)}</td>
+          <td class="w-20 sm:w-24 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">${c.supply!=null ? fmtNum(c.supply,0) : '—'}</td>
+          <td class="w-24 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">${mc!=null ? fmtUsdCompact(mc) : '—'}</td>
+        `;
+        nftTbody.appendChild(tr);
+
+        const det = document.createElement('tr');
+        det.className = 'details hidden bg-white/70';
+        det.innerHTML = `
+          <td colspan="5" class="px-4 py-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs text-gray-700">
+              <div class="md:col-span-4 flex items-center gap-2 text-sm">
+                ${c.image ? `<img src="${c.image}" class="w-6 h-6 rounded"/>` : ''}
+                <span class="font-semibold">${c.name}</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-200">solana</span>
+              </div>
+              <div><span class="font-medium">Floor:</span> ${c.floorUSD? fmtUsd(c.floorUSD)+' · ' : ''}${fmtSol(c.floorSOL)}</div>
+              <div><span class="font-medium">Listados:</span> ${c.listed ?? '—'}</div>
+              <div><span class="font-medium">Vol 24h:</span> ${c.vol24hSOL ? '◎'+c.vol24hSOL.toFixed(2) : '—'}</div>
+              ${c.supply!=null ? `<div><span class="font-medium">Supply:</span> ${fmtNum(c.supply,0)}</div>` : ''}
+              <div class="flex gap-2">
+                <a href="${c.links.me}" target="_blank" rel="noopener" class="border rounded px-3 py-1">Magic Eden</a>
+                ${c.links.x ? `<a href="${c.links.x}" target="_blank" rel="noopener" class="border rounded px-3 py-1">X/Twitter</a>` : ''}
+                ${c.links.web ? `<a href="${c.links.web}" target="_blank" rel="noopener" class="border rounded px-3 py-1">Web</a>` : ''}
+                ${c.links.discord ? `<a href="${c.links.discord}" target="_blank" rel="noopener" class="border rounded px-3 py-1">Discord</a>` : ''}
+              </div>
+            </div>
+          </td>`;
+        nftTbody.appendChild(det);
+      });
+    }
+
+    async function nftRefresh(){
+      try{
+        nftStatus.textContent = 'Cargando…';
+        const list = await loadNftList();
+        if (!list.length) { nftTbody.innerHTML=''; nftStatus.textContent='Agrega colecciones a nfts.json'; return; }
+        const rowsRaw = await fetchNftsAll(list);
+        const rows = [...rowsRaw].sort((a,b)=>
+          (b.mcFloorUSD ?? 0) - (a.mcFloorUSD ?? 0) ||
+          (b.floorUSD ?? 0) - (a.floorUSD ?? 0) ||
+          (b.floorSOL ?? 0) - (a.floorSOL ?? 0)
+        );
+        renderNfts(rows);
+        nftStatus.textContent = `Actualizado: ${new Date().toLocaleTimeString()} · Auto 5m`;
+      }catch(err){
+        console.error(err);
+        nftStatus.textContent = 'Error al actualizar NFTs.';
+      }
+    }
+
+    // NFT listeners
+    nftRefreshBtn?.addEventListener('click', nftRefresh);
+    nftTbody?.addEventListener('click', (e)=>{
+      if (e.target.closest('a')) return;
+      const row = e.target.closest('tr');
+      if (!row) return;
+      const details = row.nextElementSibling;
+      if (details && details.classList.contains('details')) details.classList.toggle('hidden');
+    });
+
+    // Tabs toggle
+    function setActiveTab(tab){
+      if (tab === 'nfts') {
+        coinsSection.classList.add('hidden');
+        nftsSection.classList.remove('hidden');
+        tabNfts.classList.add('bg-black','text-white');
+        tabNfts.classList.remove('bg-gray-200');
+        tabCoins.classList.remove('bg-black','text-white');
+        tabCoins.classList.add('bg-gray-200');
+        clearInterval(nftTimer);
+        if (!window.__nftInit) { nftRefresh(); window.__nftInit = true; }
+        nftTimer = setInterval(nftRefresh, NFT_REFRESH_MS);
+      } else {
+        nftsSection.classList.add('hidden');
+        coinsSection.classList.remove('hidden');
+        tabCoins.classList.add('bg-black','text-white');
+        tabCoins.classList.remove('bg-gray-200');
+        tabNfts.classList.remove('bg-black','text-white');
+        tabNfts.classList.add('bg-gray-200');
+        clearInterval(nftTimer);
+      }
+    }
+    tabCoins?.addEventListener('click', ()=>setActiveTab('coins'));
+    tabNfts?.addEventListener('click', ()=>setActiveTab('nfts'));
+    // default stays on Coins('click', ()=>setActiveTab('coins'));
+    tabNfts?.addEventListener('click', ()=>setActiveTab('nfts'));
+    // default stays on Coins
 
     // Copia segura con fallback (Clipboard API -> execCommand)
     async function copyTextSafe(text) {
@@ -366,4 +625,6 @@
   </script>
 </body>
 </html>
+
+
 
