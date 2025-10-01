@@ -1,1 +1,6 @@
-[ { "x": "https://x.com/meximalist", "roles": ["Influencer"] } ]
+[
+  {
+    "x": "https://x.com/meximalist",
+    "roles": ["Influencer"]
+  }
+]
