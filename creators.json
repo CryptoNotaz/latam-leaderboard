@@ -1,6 +1,14 @@
 [
   {
     "x": "https://x.com/meximalist",
-    "roles": ["Influencer"]
+    "roles": ["Influencer"],
+    "bio": "Creador de Contenido",
+    "github": null,
+    "telegram": null,
+    "youtube": null,
+    "tiktok": null,
+    "instagram": null
   }
 ]
+
+
