@@ -11,6 +11,10 @@
     "x": "https://x.com/dr_armincrypto",
     "roles": ["Influencer"]
   },
+    {
+    "x": "https://x.com/fservin",
+    "roles": ["Developer"]
+  },
   {
     "x": "https://x.com/jorgevayron",
     "roles": ["Marketing"]
@@ -20,6 +24,7 @@
     "roles": ["Influencer"]
   }
 ]
+
 
 
 
