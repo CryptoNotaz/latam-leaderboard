@@ -12,10 +12,15 @@
     "roles": ["Influencer"]
   },
   {
+    "x": "https://x.com/jorgevayron",
+    "roles": ["Marketing"]
+  },
+  {
     "x": "https://x.com/Allenbaez126",
     "roles": ["Influencer"]
   }
 ]
+
 
 
 
