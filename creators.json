@@ -7,13 +7,21 @@
     "x": "https://x.com/CryptoNotaz",
     "roles": ["Influencer"]
   },
+    {
+    "x": "https://x.com/0xKaroShow",
+    "roles": ["Influencer"]
+  },
   {
     "x": "https://x.com/dr_armincrypto",
     "roles": ["Influencer"]
   },
     {
+    "x": "https://x.com/jgonzalezferrer",
+    "roles": ["Embajador"]
+  },
+    {
     "x": "https://x.com/fservin",
-    "roles": ["Developer"]
+    "roles": ["Desarrollador"]
   },
   {
     "x": "https://x.com/jorgevayron",
@@ -24,6 +32,7 @@
     "roles": ["Influencer"]
   }
 ]
+
 
 
 
