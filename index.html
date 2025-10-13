@@ -73,6 +73,7 @@
               <tr>
                 <th class="w-6 px-2 py-2 sm:px-4 sm:py-3 text-left">#</th>
                 <th class="px-2 py-2 sm:px-4 sm:py-3 text-left">Ticker</th>
+                <th class="w-20 sm:w-28 px-2 py-2 sm:px-4 sm:py-3 text-left">Plataforma</th>
                 <th class="w-24 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right">Precio</th>
                 <th class="w-14 sm:w-20 px-2 py-2 sm:px-4 sm:py-3 text-right">24h</th>
                 <th class="w-24 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right">Market Cap</th>
@@ -149,6 +150,24 @@
     const fmtUsdCompact = (n) => { try { return new Intl.NumberFormat('en-US', { style:'currency', currency:'USD', notation:'compact', maximumFractionDigits: 2 }).format(n); } catch { const abs=Math.abs(n),u=[['T',1e12],['B',1e9],['M',1e6],['K',1e3]]; for(const[s,v]of u)if(abs>=v)return '$'+(n/v).toFixed(2)+s; return fmtUsd(n);} };
     const toNum = (v) => { if (v===null||v===undefined) return null; const n = Number(String(v).replace(/[^0-9.]/g,'')); return Number.isFinite(n) ? n : null; };
 
+    // ---------- Plataforma (Pump / Bonk) ----------
+    const PLATFORM_ICONS = {
+      pump: { primary: 'https://unavatar.io/pump.fun', fallback: 'https://pump.fun/favicon.ico' },
+      bonk: { primary: 'https://unavatar.io/bonk.fun', fallback: 'https://bonk.fun/favicon.ico' }
+    };
+    function detectPlatform(address){
+      if(!address) return null;
+      const ca = String(address).trim();
+      const low = ca.toLowerCase();
+      if (low.endsWith('pump')) {
+        return { key:'pump', name:'Pump.fun', url:`https://pump.fun/coin/${ca}`, iconPrimary:PLATFORM_ICONS.pump.primary, iconFallback:PLATFORM_ICONS.pump.fallback };
+      }
+      if (low.endsWith('bonk')) {
+        return { key:'bonk', name:'Bonk.fun', url:`https://bonk.fun/token/${ca}`, iconPrimary:PLATFORM_ICONS.bonk.primary, iconFallback:PLATFORM_ICONS.bonk.fallback };
+      }
+      return null;
+    }
+
     // ---------- coins ----------
     const tbody = document.getElementById('tbody');
     const refreshBtn = document.getElementById('refreshBtn');
@@ -193,7 +212,8 @@
         const qSym = (p.quoteToken?.symbol || '').toUpperCase();
         const isUsd = USD_QUOTES.some(u => qSym.includes(u));
         const liq = p.liquidity?.usd ?? 0;
-        const vol = p.volume?.h24 ?? 0;
+        the_vol = p.volume?.h24 ?? 0; // (kept name as in original logic)
+        const vol = the_vol;
         const score = (isUsd ? 1 : 0) * 1e12 + liq * 1e6 + vol;
         const prev = best.get(base);
         if (!prev || score > prev.__score) { p.__score = score; best.set(base, p); }
@@ -235,7 +255,8 @@
         change24: p.priceChange?.h24 ?? null,
         xUrl: getXUrl(p.info),
         chainId: p.chainId,
-        url: p.url
+        url: p.url,
+        platform: detectPlatform(p.baseToken?.address)
       }));
 
       tokens.sort((a,b) => ((b.mc ?? b.fdv ?? 0) - (a.mc ?? a.fdv ?? 0)));
@@ -262,6 +283,16 @@
               </button>` : ''}
             </div>
           </td>
+          <td class="w-20 sm:w-28 px-2 py-2 sm:px-4 sm:py-3">
+            ${t.platform ? `
+              <a href="${t.platform.url}" target="_blank" rel="noopener" class="inline-flex items-center gap-1">
+                <img src="${t.platform.iconPrimary}"
+                     onerror="this.onerror=null;this.src='${t.platform.iconFallback}'"
+                     alt="${t.platform.name}" class="w-4 h-4 rounded-sm"/>
+                <span class="hidden sm:inline text-xs text-gray-600 dark:text-gray-300">${t.platform.name}</span>
+              </a>
+            ` : `<span class="text-gray-400">—</span>`}
+          </td>
           <td class="w-28 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">${t.priceUsd != null ? fmtUsdSmart(t.priceUsd) : '—'}</td>
           <td class="w-16 sm:w-20 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap ${chgClass}">${chg != null ? fmtNum(chg, 2) + '%' : '—'}</td>
           <td class="w-24 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">
@@ -273,7 +304,7 @@
         const det = document.createElement('tr');
         det.className = 'details hidden bg-white/70 dark:bg-gray-800/70';
         det.innerHTML = `
-          <td colspan="5" class="px-4 py-3">
+          <td colspan="6" class="px-4 py-3">
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs text-gray-700 dark:text-gray-300">
               <div class="md:col-span-4 flex items-center gap-2 text-sm">
                 ${t.imageUrl ? `<img src="${t.imageUrl}" class="w-5 h-5 rounded-full"/>` : ''}
@@ -281,13 +312,21 @@
                 <span class="text-xs text-gray-500 dark:text-gray-400 uppercase">${t.symbol}</span>
                 <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-700">${t.chainId}</span>
               </div>
-              <div class="md:col-span-4 flex flex-wrap items-center gap-2"><span class="font-medium">CA:</span> <code class="font-mono text-xs sm:text-[13px] break-all md:whitespace-nowrap select-all">${t.address || '—'}</code> <button class="copy relative inline-flex items-center gap-1 border rounded px-2 py-0.5 ml-1 dark:border-gray-600" data-copy="${t.address || ''}">Copiar<span class="tooltip absolute top-7 right-0 bg-black text-white text-[10px] px-2 py-0.5 rounded opacity-0 pointer-events-none transition-opacity">Copiado</span></button></div>
+              <div class="md:col-span-4 flex flex-wrap items-center gap-2">
+                <span class="font-medium">CA:</span>
+                <code class="font-mono text-xs sm:text-[13px] break-all md:whitespace-nowrap select-all">${t.address || '—'}</code>
+                <button class="copy relative inline-flex items-center gap-1 border rounded px-2 py-0.5 ml-1 dark:border-gray-600" data-copy="${t.address || ''}">
+                  Copiar
+                  <span class="tooltip absolute top-7 right-0 bg-black text-white text-[10px] px-2 py-0.5 rounded opacity-0 pointer-events-none transition-opacity">Copiado</span>
+                </button>
+              </div>
               <div><span class="font-medium">Liquidez:</span> ${t.liq != null ? fmtUsd(t.liq) : '—'}</div>
               <div><span class="font-medium">Market Cap:</span> ${cap != null ? fmtUsd(cap) : '—'} (${badge})</div>
               ${t.fdv != null ? `<div><span class="font-medium">FDV:</span> ${fmtUsd(t.fdv)}</div>` : ''}
               <div class="flex gap-2">
                 ${t.url ? `<a href="${t.url}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600">Dexscreener</a>` : ''}
                 ${t.xUrl ? `<a href="${t.xUrl}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600">X/Twitter</a>` : ''}
+                ${t.platform ? `<a href="${t.platform.url}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600">${t.platform.name}</a>` : ''}
               </div>
             </div>
           </td>`;
@@ -710,6 +749,8 @@
   </script>
 </body>
 </html>
+
+
 
 
 
