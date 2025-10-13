@@ -4,21 +4,47 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Latam Market Cap — Dexscreener</title>
+
+  <!-- 0) Aplica dark justo al inicio para evitar parpadeo -->
+  <script>
+    (function () {
+      const saved = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const useDark = saved ? saved === 'dark' : prefersDark;
+      if (useDark) document.documentElement.classList.add('dark');
+    })();
+  </script>
+
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- 1) Activa darkMode por clase -->
+  <script>
+    tailwind.config = { darkMode: 'class' };
+  </script>
+
   <style>
     .transition-height { transition: height .2s ease; }
   </style>
 </head>
-<body class="min-h-screen bg-gray-50 text-gray-900">
+
+<body class="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
   <div class="max-w-5xl mx-auto px-3 sm:px-6 py-6">
     <header class="mb-6 text-center">
       <h1 class="text-2xl sm:text-3xl font-bold">Latam Market Cap</h1>
     </header>
 
-    <nav class="mb-4 flex justify-center sm:justify-start gap-2">
-      <button id="tabCoins" class="px-3 py-1.5 rounded-lg bg-black text-white">Coins</button>
-      <button id="tabNfts" class="px-3 py-1.5 rounded-lg bg-gray-200">NFTs</button>
-      <button id="tabCreators" class="px-3 py-1.5 rounded-lg bg-gray-200">Creadores</button>
+    <nav class="mb-4 flex justify-center sm:justify-between items-center gap-2">
+      <div class="flex gap-2">
+        <button id="tabCoins" class="px-3 py-1.5 rounded-lg bg-black text-white">Coins</button>
+        <button id="tabNfts" class="px-3 py-1.5 rounded-lg bg-gray-200 dark:bg-gray-700 dark:text-gray-100">NFTs</button>
+        <button id="tabCreators" class="px-3 py-1.5 rounded-lg bg-gray-200 dark:bg-gray-700 dark:text-gray-100">Creadores</button>
+      </div>
+
+      <!-- 2) Botón tema -->
+      <button id="themeToggle"
+        class="px-3 py-1.5 rounded-lg border text-sm
+               bg-white text-gray-800 border-gray-300 hover:bg-gray-100
+               dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700 dark:hover:bg-gray-700"
+        title="Cambiar tema">🌙</button>
     </nav>
 
     <!-- COINS -->
@@ -26,12 +52,12 @@
       <div>
         <div class="flex items-center gap-3 mb-3 justify-center sm:justify-start">
           <button id="refreshBtn" class="px-4 py-2 rounded-xl bg-black text-white font-medium shadow hover:opacity-90 active:opacity-80">Actualizar</button>
-          <span id="status" class="text-sm text-gray-600"></span>
+          <span id="status" class="text-sm text-gray-600 dark:text-gray-400"></span>
         </div>
 
-        <div class="overflow-x-auto bg-white rounded-2xl shadow">
+        <div class="overflow-x-auto bg-white dark:bg-gray-800 rounded-2xl shadow">
           <table class="w-full table-auto text-xs sm:text-sm" id="table">
-            <thead class="bg-gray-100 sticky top-0 z-10">
+            <thead class="bg-gray-100 dark:bg-gray-700 sticky top-0 z-10">
               <tr>
                 <th class="w-6 px-2 py-2 sm:px-4 sm:py-3 text-left">#</th>
                 <th class="px-2 py-2 sm:px-4 sm:py-3 text-left">Ticker</th>
@@ -51,11 +77,11 @@
       <div>
         <div class="flex items-center gap-3 mb-3 justify-center sm:justify-start">
           <button id="nftRefreshBtn" class="px-4 py-2 rounded-xl bg-black text-white font-medium shadow hover:opacity-90 active:opacity-80">Actualizar</button>
-          <span id="nftStatus" class="text-sm text-gray-600"></span>
+          <span id="nftStatus" class="text-sm text-gray-600 dark:text-gray-400"></span>
         </div>
-        <div class="overflow-x-auto bg-white rounded-2xl shadow">
+        <div class="overflow-x-auto bg-white dark:bg-gray-800 rounded-2xl shadow">
           <table class="w-full table-auto text-xs sm:text-sm">
-            <thead class="bg-gray-100 sticky top-0 z-10">
+            <thead class="bg-gray-100 dark:bg-gray-700 sticky top-0 z-10">
               <tr>
                 <th class="w-6 px-2 py-2 sm:px-4 sm:py-3 text-left">#</th>
                 <th class="px-2 py-2 sm:px-4 sm:py-3 text-left">Colección</th>
@@ -76,11 +102,11 @@
       <div>
         <div class="flex items-center gap-3 mb-3 justify-center sm:justify-start">
           <button id="creRefreshBtn" class="px-4 py-2 rounded-xl bg-black text-white font-medium shadow hover:opacity-90 active:opacity-80">Actualizar</button>
-          <span id="creStatus" class="text-sm text-gray-600"></span>
+          <span id="creStatus" class="text-sm text-gray-600 dark:text-gray-400"></span>
         </div>
-        <div class="overflow-x-auto bg-white rounded-2xl shadow">
+        <div class="overflow-x-auto bg-white dark:bg-gray-800 rounded-2xl shadow">
           <table class="w-full table-auto text-xs sm:text-sm">
-            <thead class="bg-gray-100 sticky top-0 z-10">
+            <thead class="bg-gray-100 dark:bg-gray-700 sticky top-0 z-10">
               <tr>
                 <th class="w-6 px-2 py-2 sm:px-4 sm:py-3 text-left">#</th>
                 <th class="px-2 py-2 sm:px-4 sm:py-3 text-left">Creador</th>
@@ -94,7 +120,7 @@
       </div>
     </section>
 
-    <footer class="mt-10 text-xs text-gray-500">
+    <footer class="mt-10 text-xs text-gray-500 dark:text-gray-400">
       <div class="flex items-center gap-2 justify-center sm:justify-start">
         <img src="./v1ps-logo.png" alt="V1PS" class="w-4 h-4 rounded">
         <span>Powered by <a class="underline" href="https://x.com/V1PS_NFTs" target="_blank" rel="noopener">V1PS</a></span>
@@ -204,21 +230,21 @@
 
       tokens.forEach((t, i) => {
         const tr = document.createElement('tr');
-        tr.className = 'group cursor-pointer hover:bg-gray-50 leading-tight';
-        const chg = t.change24; const chgClass = chg == null ? '' : (chg >= 0 ? 'text-green-600' : 'text-red-600');
+        tr.className = 'group cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/40 leading-tight';
+        const chg = t.change24; const chgClass = chg == null ? '' : (chg >= 0 ? 'text-green-600' : 'text-red-500');
         const cap = t.mc ?? t.fdv; const badge = t.mc != null ? 'MC' : (t.fdv != null ? 'FDV' : '—');
         tr.innerHTML = `
-          <td class="w-6 px-2 py-2 sm:px-4 sm:py-3 text-gray-500">${i + 1}</td>
+          <td class="w-6 px-2 py-2 sm:px-4 sm:py-3 text-gray-500 dark:text-gray-400">${i + 1}</td>
           <td class="px-2 py-2 sm:px-4 sm:py-3">
             <div class="flex items-center gap-1.5 sm:gap-2 min-w-0">
               ${t.imageUrl ? `<img src="${t.imageUrl}" class="w-5 h-5 rounded-full"/>` : ''}
               <span class="font-semibold truncate lp-copy" data-copy="${t.address || ''}" title="Mantén presionado para copiar CA">${t.symbol || t.name}</span>
-              <span class="inline-flex text-[10px] px-1.5 py-0.5 rounded bg-gray-200">${t.chainId}</span>
-              ${t.url ? `<a href="${t.url}" class="hidden md:inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200" title="Ver en Dexscreener">↗</a>` : ''}
-              ${t.xUrl ? `<a href="${t.xUrl}" class="hidden md:inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200" title="X / Twitter">
+              <span class="inline-flex text-[10px] px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-700">${t.chainId}</span>
+              ${t.url ? `<a href="${t.url}" class="hidden md:inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200 dark:hover:bg-gray-700" title="Ver en Dexscreener">↗</a>` : ''}
+              ${t.xUrl ? `<a href="${t.xUrl}" class="hidden md:inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200 dark:hover:bg-gray-700" title="X / Twitter">
                 <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="currentColor" aria-hidden="true"><path d="M18.244 3.515h3.167l-6.92 7.91 8.11 9.06H19.21l-5.66-6.328-6.465 6.328H3.917l7.405-7.245-7.87-8.726h4.04l5.157 5.723 5.595-5.723Zm-1.112 16.01h1.755L7.94 5.864H6.06l11.072 13.662Z"></path></svg>
               </a>` : ''}
-              ${t.address ? `<button class="copy relative shrink-0 hidden sm:inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200" data-copy="${t.address}" aria-label="Copiar CA">
+              ${t.address ? `<button class="copy relative shrink-0 hidden sm:inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200 dark:hover:bg-gray-700" data-copy="${t.address}" aria-label="Copiar CA">
                 <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="currentColor" aria-hidden="true"><path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"></path></svg>
                 <span class="tooltip absolute top-7 right-0 bg-black text-white text-[10px] px-2 py-0.5 rounded opacity-0 pointer-events-none transition-opacity">Copiado</span>
               </button>` : ''}
@@ -228,34 +254,32 @@
           <td class="w-16 sm:w-20 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap ${chgClass}">${chg != null ? fmtNum(chg, 2) + '%' : '—'}</td>
           <td class="w-24 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">
             <span class="md:hidden">${cap != null ? fmtUsdCompact(cap) : '—'}</span>
-            <span class="hidden md:inline">${cap != null ? fmtUsd(cap) : '—'} <span class="ml-1 text-[10px] px-1 py-0.5 rounded bg-gray-100 border">${badge}</span></span>
+            <span class="hidden md:inline">${cap != null ? fmtUsd(cap) : '—'} <span class="ml-1 text-[10px] px-1 py-0.5 rounded bg-gray-100 dark:bg-gray-700 border dark:border-gray-600">${badge}</span></span>
           </td>`;
         tbody.appendChild(tr);
 
         const det = document.createElement('tr');
-        det.className = 'details hidden bg-white/70';
+        det.className = 'details hidden bg-white/70 dark:bg-gray-800/70';
         det.innerHTML = `
           <td colspan="5" class="px-4 py-3">
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs text-gray-700">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs text-gray-700 dark:text-gray-300">
               <div class="md:col-span-4 flex items-center gap-2 text-sm">
                 ${t.imageUrl ? `<img src="${t.imageUrl}" class="w-5 h-5 rounded-full"/>` : ''}
                 <span class="font-semibold">${t.name || '—'}</span>
-                <span class="text-xs text-gray-500 uppercase">${t.symbol}</span>
-                <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-200">${t.chainId}</span>
+                <span class="text-xs text-gray-500 dark:text-gray-400 uppercase">${t.symbol}</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-700">${t.chainId}</span>
               </div>
-              <div class="md:col-span-4 flex flex-wrap items-center gap-2"><span class="font-medium">CA:</span> <code class="font-mono text-xs sm:text-[13px] break-all md:whitespace-nowrap select-all">${t.address || '—'}</code> <button class="copy relative inline-flex items-center gap-1 border rounded px-2 py-0.5 ml-1" data-copy="${t.address || ''}">Copiar<span class="tooltip absolute top-7 right-0 bg-black text-white text-[10px] px-2 py-0.5 rounded opacity-0 pointer-events-none transition-opacity">Copiado</span></button></div>
+              <div class="md:col-span-4 flex flex-wrap items-center gap-2"><span class="font-medium">CA:</span> <code class="font-mono text-xs sm:text-[13px] break-all md:whitespace-nowrap select-all">${t.address || '—'}</code> <button class="copy relative inline-flex items-center gap-1 border rounded px-2 py-0.5 ml-1 dark:border-gray-600" data-copy="${t.address || ''}">Copiar<span class="tooltip absolute top-7 right-0 bg-black text-white text-[10px] px-2 py-0.5 rounded opacity-0 pointer-events-none transition-opacity">Copiado</span></button></div>
               <div><span class="font-medium">Liquidez:</span> ${t.liq != null ? fmtUsd(t.liq) : '—'}</div>
               <div><span class="font-medium">Market Cap:</span> ${cap != null ? fmtUsd(cap) : '—'} (${badge})</div>
               ${t.fdv != null ? `<div><span class="font-medium">FDV:</span> ${fmtUsd(t.fdv)}</div>` : ''}
               <div class="flex gap-2">
-                ${t.url ? `<a href="${t.url}" target="_blank" rel="noopener" class="border rounded px-3 py-1">Dexscreener</a>` : ''}
-                ${t.xUrl ? `<a href="${t.xUrl}" target="_blank" rel="noopener" class="border rounded px-3 py-1">X/Twitter</a>` : ''}
+                ${t.url ? `<a href="${t.url}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600">Dexscreener</a>` : ''}
+                ${t.xUrl ? `<a href="${t.xUrl}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600">X/Twitter</a>` : ''}
               </div>
             </div>
           </td>`;
         tbody.appendChild(det);
-
-        // toggle del detalle: lo maneja el listener global de <tbody>
       });
     }
 
@@ -377,16 +401,16 @@
       nftTbody.innerHTML = '';
       rows.forEach((c,i)=>{
         const tr = document.createElement('tr');
-        tr.className = 'group cursor-pointer hover:bg-gray-50 leading-tight';
+        tr.className = 'group cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/40 leading-tight';
         tr.innerHTML = `
-          <td class="w-6 px-2 py-2 sm:px-4 sm:py-3 text-gray-500">${i+1}</td>
+          <td class="w-6 px-2 py-2 sm:px-4 sm:py-3 text-gray-500 dark:text-gray-400">${i+1}</td>
           <td class="px-2 py-2 sm:px-4 sm:py-3">
             <div class="flex items-center gap-2 min-w-0">
               ${c.image ? `<img src="${c.image}" class="w-5 h-5 rounded"/>` : ''}
               <span class="font-semibold truncate">${c.name}</span>
             </div>
           </td>
-          <td class="w-24 sm:w-28 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">${fmtSol(c.floorSOL)} ${c.floorUSD? `<span class='text-gray-500'>(${fmtUsd(c.floorUSD)})</span>` : ''}</td>
+          <td class="w-24 sm:w-28 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">${fmtSol(c.floorSOL)} ${c.floorUSD? `<span class='text-gray-500 dark:text-gray-400'>(${fmtUsd(c.floorUSD)})</span>` : ''}</td>
           <td class="w-20 sm:w-24 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">${fmtSolCompact(c.vol24hSOL)}</td>
           <td class="w-20 sm:w-24 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">${c.supply!=null ? fmtNum(c.supply,0) : '—'}</td>
           <td class="w-24 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">
@@ -396,30 +420,29 @@
         nftTbody.appendChild(tr);
 
         const det = document.createElement('tr');
-        det.className = 'details hidden bg-white/70';
+        det.className = 'details hidden bg-white/70 dark:bg-gray-800/70';
         det.innerHTML = `
           <td colspan="6" class="px-4 py-3">
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs text-gray-700">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs text-gray-700 dark:text-gray-300">
               <div class="md:col-span-4 flex items-center gap-2 text-sm">
                 ${c.image ? `<img src="${c.image}" class="w-6 h-6 rounded"/>` : ''}
                 <span class="font-semibold">${c.name}</span>
-                <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-200">solana</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-700">solana</span>
               </div>
               <div><span class="font-medium">Floor:</span> ${c.floorUSD? fmtUsd(c.floorUSD)+' · ' : ''}${fmtSol(c.floorSOL)}</div>
               <div><span class="font-medium">Listados:</span> ${c.listed ?? '—'}</div>
               <div><span class="font-medium">Vol 24h:</span> ${c.vol24hSOL==null?'—':`◎${c.vol24hSOL.toFixed(2)}`}</div>
               ${c.supply!=null ? `<div><span class="font-medium">Supply:</span> ${fmtNum(c.supply,0)}</div>` : ''}
               <div class="flex gap-2">
-                <a href="${c.links.me}" target="_blank" rel="noopener" class="border rounded px-3 py-1">Magic Eden</a>
-                ${c.links.x ? `<a href="${c.links.x}" target="_blank" rel="noopener" class="border rounded px-3 py-1">X/Twitter</a>` : ''}
-                ${c.links.web ? `<a href="${c.links.web}" target="_blank" rel="noopener" class="border rounded px-3 py-1">Web</a>` : ''}
-                ${c.links.discord ? `<a href="${c.links.discord}" target="_blank" rel="noopener" class="border rounded px-3 py-1">Discord</a>` : ''}
+                <a href="${c.links.me}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600">Magic Eden</a>
+                ${c.links.x ? `<a href="${c.links.x}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600">X/Twitter</a>` : ''}
+                ${c.links.web ? `<a href="${c.links.web}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600">Web</a>` : ''}
+                ${c.links.discord ? `<a href="${c.links.discord}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600">Discord</a>` : ''}
               </div>
             </div>
           </td>`;
         nftTbody.appendChild(det);
 
-        // toggle por fila (evitamos duplicados globales)
         tr.addEventListener('click', (e)=>{
           if (e.target.closest('a,button')) return;
           det.classList.toggle('hidden');
@@ -510,14 +533,14 @@
       rows.forEach((c,i)=>{
         const total = sumFollowers(c.followers);
         const tr = document.createElement('tr');
-        tr.className = 'group cursor-pointer hover:bg-gray-50 leading-tight';
+        tr.className = 'group cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/40 leading-tight';
         tr.innerHTML = `
-          <td class="w-6 px-2 py-2 sm:px-4 sm:py-3 text-gray-500">${i+1}</td>
+          <td class="w-6 px-2 py-2 sm:px-4 sm:py-3 text-gray-500 dark:text-gray-400">${i+1}</td>
           <td class="px-2 py-2 sm:px-4 sm:py-3">
             <div class="flex items-center gap-2 min-w-0">
               ${c.avatar ? `<img src="${c.avatar}" class="w-6 h-6 rounded-full"/>` : ''}
               <span class="font-semibold truncate">${c.name}</span>
-              ${c.x ? `<a class="inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200" target="_blank" rel="noopener" href="${c.x}" title="Perfil en X">
+              ${c.x ? `<a class="inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200 dark:hover:bg-gray-700" target="_blank" rel="noopener" href="${c.x}" title="Perfil en X">
                 <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="currentColor" aria-hidden="true"><path d="M18.244 3.515h3.167l-6.92 7.91 8.11 9.06H19.21l-5.66-6.328-6.465 6.328H3.917l7.405-7.245-7.87-8.726h4.04l5.157 5.723 5.595-5.723Zm-1.112 16.01h1.755L7.94 5.864H6.06l11.072 13.662Z"></path></svg>
               </a>` : ''}
             </div>
@@ -527,20 +550,20 @@
         creTbody.appendChild(tr);
 
         const det = document.createElement('tr');
-        det.className = 'details hidden bg-white/70';
+        det.className = 'details hidden bg-white/70 dark:bg-gray-800/70';
         det.innerHTML = `
           <td colspan="4" class="px-4 py-3">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs text-gray-700">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs text-gray-700 dark:text-gray-300">
               <div class="md:col-span-3">${c.bio ? c.bio : ''}</div>
               <div><span class="font-medium">Seguidores totales:</span> ${fmtNum(total || c.followers?.x || 0,0)}</div>
               <div><span class="font-medium">Roles:</span> ${(c.roles||[]).join(', ') || '—'}</div>
               <div class="flex gap-2 flex-wrap">
-                ${c.x ? `<a class="border rounded px-3 py-1" target="_blank" rel="noopener" href="${c.x}">X/Twitter</a>` : ''}
-                ${c.github ? `<a class="border rounded px-3 py-1" target="_blank" rel="noopener" href="${c.github}">GitHub</a>` : ''}
-                ${c.telegram ? `<a class="border rounded px-3 py-1" target="_blank" rel="noopener" href="${c.telegram}">Telegram</a>` : ''}
-                ${c.youtube ? `<a class="border rounded px-3 py-1" target="_blank" rel="noopener" href="${c.youtube}">YouTube</a>` : ''}
-                ${c.tiktok ? `<a class="border rounded px-3 py-1" target="_blank" rel="noopener" href="${c.tiktok}">TikTok</a>` : ''}
-                ${c.instagram ? `<a class="border rounded px-3 py-1" target="_blank" rel="noopener" href="${c.instagram}">Instagram</a>` : ''}
+                ${c.x ? `<a class="border rounded px-3 py-1 dark:border-gray-600" target="_blank" rel="noopener" href="${c.x}">X/Twitter</a>` : ''}
+                ${c.github ? `<a class="border rounded px-3 py-1 dark:border-gray-600" target="_blank" rel="noopener" href="${c.github}">GitHub</a>` : ''}
+                ${c.telegram ? `<a class="border rounded px-3 py-1 dark:border-gray-600" target="_blank" rel="noopener" href="${c.telegram}">Telegram</a>` : ''}
+                ${c.youtube ? `<a class="border rounded px-3 py-1 dark:border-gray-600" target="_blank" rel="noopener" href="${c.youtube}">YouTube</a>` : ''}
+                ${c.tiktok ? `<a class="border rounded px-3 py-1 dark:border-gray-600" target="_blank" rel="noopener" href="${c.tiktok}">TikTok</a>` : ''}
+                ${c.instagram ? `<a class="border rounded px-3 py-1 dark:border-gray-600" target="_blank" rel="noopener" href="${c.instagram}">Instagram</a>` : ''}
               </div>
             </div>
           </td>`;
@@ -577,7 +600,7 @@
       nftsSection.classList.toggle('hidden', tab !== 'nfts');
       creatorsSection.classList.toggle('hidden', tab !== 'creators');
       const on  = ['bg-black','text-white'];
-      const off = ['bg-gray-200'];
+      const off = ['bg-gray-200','dark:bg-gray-700','dark:text-gray-100'];
       [tabCoins, tabNfts, tabCreators].forEach(b => b?.classList.remove(...on, ...off));
       if (tab === 'coins')   { tabCoins?.classList.add(...on);    tabNfts?.classList.add(...off);    tabCreators?.classList.add(...off); }
       if (tab === 'nfts')    { tabNfts?.classList.add(...on);     tabCoins?.classList.add(...off);   tabCreators?.classList.add(...off); }
@@ -656,9 +679,27 @@
       console.assert(fmtUsdSmart(1.2345) === '$1.23','fmtUsdSmart');
       console.assert(lamportsToSOL(1e9) === 1,'lamportsToSOL');
     } catch(e){ console.warn('Tests warning:', e); } })();
+
+    // 3) Script del botón de tema (persistente)
+    (function () {
+      const btn = document.getElementById('themeToggle');
+      if (!btn) return;
+      const setTheme = (theme) => {
+        document.documentElement.classList.toggle('dark', theme === 'dark');
+        localStorage.setItem('theme', theme);
+        btn.textContent = (theme === 'dark') ? '☀️' : '🌙';
+      };
+      setTheme(document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+      btn.addEventListener('click', () => {
+        const next = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
+        setTheme(next);
+      });
+    })();
   </script>
 </body>
 </html>
+
+
 
 
 
