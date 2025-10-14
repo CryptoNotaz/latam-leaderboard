@@ -16,9 +16,14 @@
   </script>
 
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config = { darkMode: 'class' };</script>
+  <!-- 1) Activa darkMode por clase -->
+  <script>
+    tailwind.config = { darkMode: 'class' };
+  </script>
 
-  <style>.transition-height{transition:height .2s ease;}</style>
+  <style>
+    .transition-height { transition: height .2s ease; }
+  </style>
 </head>
 
 <body class="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
@@ -34,6 +39,7 @@
         <button id="tabCreators" class="px-3 py-1.5 rounded-lg bg-gray-200 dark:bg-gray-700 dark:text-gray-100">Creadores</button>
       </div>
 
+      <!-- 2) Contenedor: Botón tema + botón formulario -->
       <div class="flex items-center gap-2">
         <button id="themeToggle"
           class="px-3 py-1.5 rounded-lg border text-sm
@@ -41,10 +47,13 @@
                  dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700 dark:hover:bg-gray-700"
           title="Cambiar tema">🌙</button>
 
-        <a href="https://forms.gle/ceKKLWemXwLpcXUK8" target="_blank" rel="noopener"
-           class="px-3 py-1.5 rounded-lg text-sm font-medium
-                  bg-indigo-600 text-white hover:bg-indigo-700
-                  dark:bg-indigo-500 dark:hover:bg-indigo-600">
+        <!-- Botón nuevo: Solicitar listado -->
+        <a
+          href="https://forms.gle/ceKKLWemXwLpcXUK8"
+          target="_blank" rel="noopener"
+          class="px-3 py-1.5 rounded-lg text-sm font-medium
+                 bg-indigo-600 text-white hover:bg-indigo-700
+                 dark:bg-indigo-500 dark:hover:bg-indigo-600">
           Solicitar listado
         </a>
       </div>
@@ -64,7 +73,7 @@
               <tr>
                 <th class="w-6 px-2 py-2 sm:px-4 sm:py-3 text-left">#</th>
                 <th class="px-2 py-2 sm:px-4 sm:py-3 text-left">Ticker</th>
-                <!-- Columna Plataforma eliminada -->
+                <th class="w-20 sm:w-28 px-2 py-2 sm:px-4 sm:py-3 text-left">Plataforma</th>
                 <th class="w-24 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right">Precio</th>
                 <th class="w-14 sm:w-20 px-2 py-2 sm:px-4 sm:py-3 text-right">24h</th>
                 <th class="w-24 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right">Market Cap</th>
@@ -203,7 +212,8 @@
         const qSym = (p.quoteToken?.symbol || '').toUpperCase();
         const isUsd = USD_QUOTES.some(u => qSym.includes(u));
         const liq = p.liquidity?.usd ?? 0;
-        const vol = p.volume?.h24 ?? 0;
+        the_vol = p.volume?.h24 ?? 0; // (kept name as in original logic)
+        const vol = the_vol;
         const score = (isUsd ? 1 : 0) * 1e12 + liq * 1e6 + vol;
         const prev = best.get(base);
         if (!prev || score > prev.__score) { p.__score = score; best.set(base, p); }
@@ -273,7 +283,19 @@
               </button>` : ''}
             </div>
           </td>
-          <!-- Columna Plataforma eliminada -->
+          <td class="w-20 sm:w-28 px-2 py-2 sm:px-4 sm:py-3">
+  ${t.platform ? `
+    <a href="${t.platform.url}" target="_blank" rel="noopener" class="inline-flex items-center">
+      <img
+        src="${t.platform.iconPrimary}"
+        onerror="this.onerror=null;this.src='${t.platform.iconFallback}'"
+        alt="${t.platform.name}"
+        class="w-4 h-4 rounded-sm"
+        referrerpolicy="no-referrer"
+      />
+    </a>
+  ` : `<span class="text-gray-400">—</span>`}
+</td>
           <td class="w-28 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">${t.priceUsd != null ? fmtUsdSmart(t.priceUsd) : '—'}</td>
           <td class="w-16 sm:w-20 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap ${chgClass}">${chg != null ? fmtNum(chg, 2) + '%' : '—'}</td>
           <td class="w-24 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">
@@ -285,22 +307,13 @@
         const det = document.createElement('tr');
         det.className = 'details hidden bg-white/70 dark:bg-gray-800/70';
         det.innerHTML = `
-          <td colspan="5" class="px-4 py-3">
+          <td colspan="6" class="px-4 py-3">
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs text-gray-700 dark:text-gray-300">
               <div class="md:col-span-4 flex items-center gap-2 text-sm">
                 ${t.imageUrl ? `<img src="${t.imageUrl}" class="w-5 h-5 rounded-full"/>` : ''}
                 <span class="font-semibold">${t.name || '—'}</span>
                 <span class="text-xs text-gray-500 dark:text-gray-400 uppercase">${t.symbol}</span>
                 <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-700">${t.chainId}</span>
-                ${t.platform ? `
-                  <a href="${t.platform.url}" target="_blank" rel="noopener"
-                     class="ml-2 inline-flex items-center justify-center">
-                    <img src="${t.platform.iconPrimary}"
-                         onerror="this.onerror=null;this.src='${t.platform.iconFallback}'"
-                         alt="${t.platform.name}"
-                         class="w-4 h-4 rounded-sm"
-                         referrerpolicy="no-referrer" />
-                  </a>` : ``}
               </div>
               <div class="md:col-span-4 flex flex-wrap items-center gap-2">
                 <span class="font-medium">CA:</span>
@@ -316,7 +329,7 @@
               <div class="flex gap-2">
                 ${t.url ? `<a href="${t.url}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600">Dexscreener</a>` : ''}
                 ${t.xUrl ? `<a href="${t.xUrl}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600">X/Twitter</a>` : ''}
-                <!-- Enlaces de plataforma sin texto; dejamos sólo el icono arriba junto al título -->
+                ${t.platform ? `<a href="${t.platform.url}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600">${t.platform.name}</a>` : ''}
               </div>
             </div>
           </td>`;
@@ -381,10 +394,23 @@
       } catch(e){ console.warn('nfts.json no disponible/ inválido, usando fallback', e); return NFTS_FALLBACK; }
     }
 
+    // precio SOL con fallbacks
     async function fetchSolPrice(){
-      try { const r = await fetch('https://price.jup.ag/v6/price?ids=SOL'); const j = await r.json(); const p = j?.data?.SOL?.price; if (typeof p === 'number') return p; } catch{}
-      try { const r = await fetch('https://price.jup.ag/v4/price?ids=SOL'); const j = await r.json(); const p = j?.data?.SOL?.price; if (typeof p === 'number') return p; } catch{}
-      try { const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd'); const j = await r.json(); const p = j?.solana?.usd; if (typeof p === 'number') return p; } catch{}
+      try { // Jupiter v6
+        const r = await fetch('https://price.jup.ag/v6/price?ids=SOL');
+        const j = await r.json(); const p = j?.data?.SOL?.price;
+        if (typeof p === 'number') return p;
+      } catch {}
+      try { // Jupiter v4
+        const r = await fetch('https://price.jup.ag/v4/price?ids=SOL');
+        const j = await r.json(); const p = j?.data?.SOL?.price;
+        if (typeof p === 'number') return p;
+      } catch {}
+      try { // CoinGecko
+        const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd');
+        const j = await r.json(); const p = j?.solana?.usd;
+        if (typeof p === 'number') return p;
+      } catch {}
       return null;
     }
 
@@ -471,8 +497,30 @@
           </td>`;
         nftTbody.appendChild(det);
 
-        tr.addEventListener('click', (e)=>{ if (e.target.closest('a,button')) return; det.classList.toggle('hidden'); });
+        tr.addEventListener('click', (e)=>{
+          if (e.target.closest('a,button')) return;
+          det.classList.toggle('hidden');
+        });
       });
+    }
+
+    async function nftRefresh(){
+      try{
+        nftStatus.textContent = 'Cargando…';
+        const list = await loadNftList();
+        if (!list.length) { nftTbody.innerHTML=''; nftStatus.textContent='Agrega colecciones a nfts.json'; return; }
+        const rowsRaw = await fetchNftsAll(list);
+        const rows = [...rowsRaw].sort((a,b)=>
+          (b.mcFloorUSD ?? 0) - (a.mcFloorUSD ?? 0) ||
+          (b.floorUSD ?? 0) - (a.floorUSD ?? 0) ||
+          (b.floorSOL ?? 0) - (a.floorSOL ?? 0)
+        );
+        renderNfts(rows);
+        nftStatus.textContent = `Actualizado: ${new Date().toLocaleTimeString()} · Auto 5m`;
+      }catch(err){
+        console.error(err);
+        nftStatus.textContent = 'Error al actualizar NFTs.';
+      }
     }
 
     nftRefreshBtn?.addEventListener('click', nftRefresh);
@@ -498,7 +546,7 @@
       const url = `${XINFO_PROXY}?handles=${encodeURIComponent(list.join(','))}`;
       const r = await fetch(url, { headers:{'accept':'application/json'} });
       if(!r.ok) throw new Error('X proxy error ' + r.status);
-      return await r.json();
+      return await r.json(); // { handleLower: {handle,name,followers,avatar,verified} }
     }
 
     async function fetchCreatorsAll(list){
@@ -660,6 +708,7 @@
     tbody.addEventListener('mousedown', lpStart);
     ['touchend','touchcancel','mouseup','mouseleave'].forEach(ev=>tbody.addEventListener(ev, lpEnd));
 
+    // toggle global de detalles para coins
     tbody.addEventListener('click', async (e) => {
       const copyBtn = e.target.closest('.copy');
       if (copyBtn) {
@@ -685,7 +734,7 @@
       console.assert(lamportsToSOL(1e9) === 1,'lamportsToSOL');
     } catch(e){ console.warn('Tests warning:', e); } })();
 
-    // Botón de tema (persistente)
+    // 3) Script del botón de tema (persistente)
     (function () {
       const btn = document.getElementById('themeToggle');
       if (!btn) return;
