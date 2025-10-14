@@ -16,6 +16,10 @@
     "roles": ["Influencer"]
   },
   {
+    "x": "https://x.com/Betrushko",
+    "roles": ["Contenido Web3"]
+  },
+    {
     "x": "https://x.com/LukazCOL",
     "roles": ["Contenido Web3"]
   },
@@ -68,6 +72,7 @@
     "roles": ["Influencer"]
   }
 ]
+
 
 
 
