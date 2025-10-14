@@ -159,10 +159,16 @@
 
     // ---------- Plataforma (Pump / Bonk) ----------
     // Usa logos locales
-    const PLATFORM_ICONS = {
-      pump: './logos/pumpfun.svg',
-      bonk: './logos/bonkfun.svg'
-    };
+const PLATFORM_ICONS = {
+  pump: {
+    primary: './logos/pumpfun.svg',
+    fallback: 'https://unavatar.io/pump.fun' // o 'https://pump.fun/favicon.ico'
+  },
+  bonk: {
+    primary: './logos/bonkfun.svg',
+    fallback: 'https://unavatar.io/bonk.fun'  // o 'https://bonk.fun/favicon.ico'
+  }
+};
     function detectPlatform(address){
       if(!address) return null;
       const ca = String(address).trim();
@@ -765,6 +771,7 @@
   </script>
 </body>
 </html>
+
 
 
 
