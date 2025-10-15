@@ -12,6 +12,10 @@
     "roles": ["Influencer"]
   },
     {
+    "x": "https://x.com/tododecripto",
+    "roles": ["Comunidad"]
+  },
+    {
     "x": "https://x.com/0xKaroShow",
     "roles": ["Influencer"]
   },
@@ -72,6 +76,7 @@
     "roles": ["Influencer"]
   }
 ]
+
 
 
 
