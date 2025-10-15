@@ -241,6 +241,29 @@
       return chooseBestPairs(arrays.flat());
     }
 
+    // helper para URL del chart
+    function buildChartUrl(t){
+      const theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+      // Si tenemos pairAddress+chainId, usar advanced-chart con pairId "chain:pair"
+      if (t.pairAddress && t.chainId) {
+        const pairId = encodeURIComponent(`${t.chainId}:${t.pairAddress}`);
+        return `https://www.dexscreener.com/widget/advanced-chart?theme=${theme}&pairId=${pairId}`;
+      }
+      // Si no, intentar deducir chain y pair de la URL pública
+      if (t.url) {
+        const m = String(t.url).match(/dexscreener\.com\/([^\/]+)\/([^\/?]+)/i);
+        if (m) {
+          const pairId = encodeURIComponent(`${m[1]}:${m[2]}`);
+          return `https://www.dexscreener.com/widget/advanced-chart?theme=${theme}&pairId=${pairId}`;
+        }
+      }
+      // Último recurso (menos preciso): widget por token
+      if (t.chainId && t.address) {
+        return `https://www.dexscreener.com/widget/tokens/${encodeURIComponent(t.chainId)}/${encodeURIComponent(t.address)}?theme=${theme}&chart=true&info=false&trades=false`;
+      }
+      return null;
+    }
+
     function render(rows) {
       tbody.innerHTML = '';
       const tokens = rows.map(p => ({
@@ -256,6 +279,7 @@
         xUrl: getXUrl(p.info),
         chainId: p.chainId,
         url: p.url,
+        pairAddress: p.pairAddress || p.pairId || null, // <-- añadido
         platform: detectPlatform(p.baseToken?.address)
       }));
 
@@ -306,6 +330,7 @@
 
         const det = document.createElement('tr');
         det.className = 'details hidden bg-white/70 dark:bg-gray-800/70';
+        const chartUrl = buildChartUrl(t);
         det.innerHTML = `
           <td colspan="6" class="px-4 py-3">
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs text-gray-700 dark:text-gray-300">
@@ -326,11 +351,25 @@
               <div><span class="font-medium">Liquidez:</span> ${t.liq != null ? fmtUsd(t.liq) : '—'}</div>
               <div><span class="font-medium">Market Cap:</span> ${cap != null ? fmtUsd(cap) : '—'} (${badge})</div>
               ${t.fdv != null ? `<div><span class="font-medium">FDV:</span> ${fmtUsd(t.fdv)}</div>` : ''}
-              <div class="flex gap-2">
-                ${t.url ? `<a href="${t.url}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600">Dexscreener</a>` : ''}
-                ${t.xUrl ? `<a href="${t.xUrl}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600">X/Twitter</a>` : ''}
-                ${t.platform ? `<a href="${t.platform.url}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600">${t.platform.name}</a>` : ''}
+            </div>
+
+            ${chartUrl ? `
+              <div class="mt-3 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+                <iframe
+                  src="${chartUrl}"
+                  class="w-full"
+                  style="height: 420px;"
+                  loading="lazy"
+                  allowtransparency="true"
+                  frameborder="0">
+                </iframe>
               </div>
+            ` : ''}
+            
+            <div class="mt-3 flex gap-2">
+              ${t.url ? `<a href="${t.url}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600">Abrir en Dexscreener</a>` : ''}
+              ${t.xUrl ? `<a href="${t.xUrl}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600">X/Twitter</a>` : ''}
+              ${t.platform ? `<a href="${t.platform.url}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600">${t.platform.name}</a>` : ''}
             </div>
           </td>`;
         tbody.appendChild(det);
@@ -752,6 +791,8 @@
   </script>
 </body>
 </html>
+
+
 
 
 
