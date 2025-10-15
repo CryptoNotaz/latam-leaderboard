@@ -15,6 +15,10 @@
     "x": "https://x.com/tododecripto",
     "roles": ["Comunidad"]
   },
+      {
+    "x": "https://x.com/0xNigromante",
+    "roles": ["Desarrollador"]
+  },
     {
     "x": "https://x.com/0xKaroShow",
     "roles": ["Influencer"]
@@ -76,6 +80,7 @@
     "roles": ["Influencer"]
   }
 ]
+
 
 
 
