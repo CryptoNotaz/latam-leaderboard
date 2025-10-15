@@ -242,28 +242,32 @@
     }
 
     // helper para URL del chart
-    function buildChartUrl(t){
-      const theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
-      // Si tenemos pairAddress+chainId, usar advanced-chart con pairId "chain:pair"
-      if (t.pairAddress && t.chainId) {
-        const pairId = encodeURIComponent(`${t.chainId}:${t.pairAddress}`);
-        return `https://www.dexscreener.com/widget/advanced-chart?theme=${theme}&pairId=${pairId}`;
-      }
-      // Si no, intentar deducir chain y pair de la URL pública
-      if (t.url) {
-        const m = String(t.url).match(/dexscreener\.com\/([^\/]+)\/([^\/?]+)/i);
-        if (m) {
-          const pairId = encodeURIComponent(`${m[1]}:${m[2]}`);
-          return `https://www.dexscreener.com/widget/advanced-chart?theme=${theme}&pairId=${pairId}`;
-        }
-      }
-      // Último recurso (menos preciso): widget por token
-      if (t.chainId && t.address) {
-        return `https://www.dexscreener.com/widget/tokens/${encodeURIComponent(t.chainId)}/${encodeURIComponent(t.address)}?theme=${theme}&chart=true&info=false&trades=false`;
-      }
-      return null;
-    }
+// Reemplaza tu buildChartUrl actual por ESTA versión
+function buildChartUrl(t){
+  const theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
 
+  // 1) Si tenemos pairAddress + chainId: usar advanced-chart con "chain/pair"
+  if (t.pairAddress && t.chainId) {
+    const pairId = `${t.chainId}/${t.pairAddress}`;                // <-- SLASH, no dos puntos
+    return `https://www.dexscreener.com/widget/advanced-chart?theme=${theme}&pairId=${encodeURIComponent(pairId)}`;
+  }
+
+  // 2) Deducir desde la URL pública de Dexscreener
+  if (t.url) {
+    const m = String(t.url).match(/dexscreener\.com\/([^\/]+)\/([^\/?]+)/i);
+    if (m) {
+      const pairId = `${m[1]}/${m[2]}`;                             // <-- SLASH
+      return `https://www.dexscreener.com/widget/advanced-chart?theme=${theme}&pairId=${encodeURIComponent(pairId)}`;
+    }
+  }
+
+  // 3) Último recurso: widget por token (no siempre perfecto, pero muestra chart)
+  if (t.chainId && t.address) {
+    return `https://www.dexscreener.com/widget/tokens/${encodeURIComponent(t.chainId)}/${encodeURIComponent(t.address)}?theme=${theme}&chart=true&info=false&trades=false`;
+  }
+
+  return null;
+}
     function render(rows) {
       tbody.innerHTML = '';
       const tokens = rows.map(p => ({
@@ -791,6 +795,7 @@
   </script>
 </body>
 </html>
+
 
 
 
