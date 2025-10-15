@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Latam Market Cap — Dexscreener</title>
 
+  <!-- 0) Aplica dark justo al inicio para evitar parpadeo -->
   <script>
     (function () {
       const saved = localStorage.getItem('theme');
@@ -15,7 +16,10 @@
   </script>
 
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config = { darkMode: 'class' };</script>
+  <!-- 1) Activa darkMode por clase -->
+  <script>
+    tailwind.config = { darkMode: 'class' };
+  </script>
 
   <style>
     .transition-height { transition: height .2s ease; }
@@ -35,6 +39,7 @@
         <button id="tabCreators" class="px-3 py-1.5 rounded-lg bg-gray-200 dark:bg-gray-700 dark:text-gray-100">Creadores</button>
       </div>
 
+      <!-- 2) Contenedor: Botón tema + botón formulario -->
       <div class="flex items-center gap-2">
         <button id="themeToggle"
           class="px-3 py-1.5 rounded-lg border text-sm
@@ -42,10 +47,13 @@
                  dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700 dark:hover:bg-gray-700"
           title="Cambiar tema">🌙</button>
 
-        <a href="https://forms.gle/ceKKLWemXwLpcXUK8" target="_blank" rel="noopener"
-           class="px-3 py-1.5 rounded-lg text-sm font-medium
-                  bg-indigo-600 text-white hover:bg-indigo-700
-                  dark:bg-indigo-500 dark:hover:bg-indigo-600">
+        <!-- Botón nuevo: Solicitar listado -->
+        <a
+          href="https://forms.gle/ceKKLWemXwLpcXUK8"
+          target="_blank" rel="noopener"
+          class="px-3 py-1.5 rounded-lg text-sm font-medium
+                 bg-indigo-600 text-white hover:bg-indigo-700
+                 dark:bg-indigo-500 dark:hover:bg-indigo-600">
           Solicitar listado
         </a>
       </div>
@@ -204,7 +212,8 @@
         const qSym = (p.quoteToken?.symbol || '').toUpperCase();
         const isUsd = USD_QUOTES.some(u => qSym.includes(u));
         const liq = p.liquidity?.usd ?? 0;
-        const vol = p.volume?.h24 ?? 0;
+        the_vol = p.volume?.h24 ?? 0; // (kept name as in original logic)
+        const vol = the_vol;
         const score = (isUsd ? 1 : 0) * 1e12 + liq * 1e6 + vol;
         const prev = best.get(base);
         if (!prev || score > prev.__score) { p.__score = score; best.set(base, p); }
@@ -232,30 +241,6 @@
       return chooseBestPairs(arrays.flat());
     }
 
-    // --- util chart: construir URL robusta ---
-    function parsePairFromUrl(u){
-      if(!u) return null;
-      // match /<chain>/<pair> PERO NO /<chain>/token/<ca>
-      const m = String(u).match(/dexscreener\.com\/([^\/?#]+)\/(?!token\/)([A-Za-z0-9]+)/i);
-      return m ? `${m[1]}/${m[2]}` : null;
-    }
-    function buildChartUrl(t){
-      const theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
-      if (t.chainId && t.pairAddress) {
-        const pairId = `${t.chainId}/${t.pairAddress}`;
-        return `https://www.dexscreener.com/widget/advanced-chart?theme=${theme}&pairId=${encodeURIComponent(pairId)}`;
-      }
-      const pairFromUrl = parsePairFromUrl(t.url);
-      if (pairFromUrl) {
-        return `https://www.dexscreener.com/widget/advanced-chart?theme=${theme}&pairId=${encodeURIComponent(pairFromUrl)}`;
-      }
-      if (t.chainId && t.address) {
-        // fallback por token (muestra solo chart)
-        return `https://www.dexscreener.com/widget/tokens/${encodeURIComponent(t.chainId)}/${encodeURIComponent(t.address)}?theme=${theme}&chart=true&info=false&trades=false`;
-      }
-      return null;
-    }
-
     function render(rows) {
       tbody.innerHTML = '';
       const tokens = rows.map(p => ({
@@ -271,7 +256,6 @@
         xUrl: getXUrl(p.info),
         chainId: p.chainId,
         url: p.url,
-        pairAddress: p.pairAddress || null,               // <<==== importante para chart
         platform: detectPlatform(p.baseToken?.address)
       }));
 
@@ -300,14 +284,18 @@
             </div>
           </td>
           <td class="w-20 sm:w-28 px-2 py-2 sm:px-4 sm:py-3">
-            ${t.platform ? `
-              <a href="${t.platform.url}" target="_blank" rel="noopener" class="inline-flex items-center">
-                <img src="${t.platform.iconPrimary}"
-                     onerror="this.onerror=null;this.src='${t.platform.iconFallback}'"
-                     alt="${t.platform.name}" class="w-4 h-4 rounded-sm" referrerpolicy="no-referrer"/>
-              </a>
-            ` : `<span class="text-gray-400">—</span>`}
-          </td>
+  ${t.platform ? `
+    <a href="${t.platform.url}" target="_blank" rel="noopener" class="inline-flex items-center">
+      <img
+        src="${t.platform.iconPrimary}"
+        onerror="this.onerror=null;this.src='${t.platform.iconFallback}'"
+        alt="${t.platform.name}"
+        class="w-4 h-4 rounded-sm"
+        referrerpolicy="no-referrer"
+      />
+    </a>
+  ` : `<span class="text-gray-400">—</span>`}
+</td>
           <td class="w-28 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">${t.priceUsd != null ? fmtUsdSmart(t.priceUsd) : '—'}</td>
           <td class="w-16 sm:w-20 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap ${chgClass}">${chg != null ? fmtNum(chg, 2) + '%' : '—'}</td>
           <td class="w-24 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">
@@ -316,33 +304,30 @@
           </td>`;
         tbody.appendChild(tr);
 
-        // --- detalle: SOLO el CHART ---
         const det = document.createElement('tr');
         det.className = 'details hidden bg-white/70 dark:bg-gray-800/70';
-        const chartSrc = buildChartUrl(t);
         det.innerHTML = `
           <td colspan="6" class="px-4 py-3">
-            <div class="grid gap-3 text-xs text-gray-700 dark:text-gray-300">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs text-gray-700 dark:text-gray-300">
               <div class="md:col-span-4 flex items-center gap-2 text-sm">
                 ${t.imageUrl ? `<img src="${t.imageUrl}" class="w-5 h-5 rounded-full"/>` : ''}
                 <span class="font-semibold">${t.name || '—'}</span>
                 <span class="text-xs text-gray-500 dark:text-gray-400 uppercase">${t.symbol}</span>
                 <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-700">${t.chainId}</span>
               </div>
-
-              <div class="rounded-lg overflow-hidden border border-black/5 dark:border-white/10">
-                ${chartSrc ? `
-                  <iframe
-                    src="${chartSrc}"
-                    style="width:100%; height:420px; border:0; overflow:hidden;"
-                    allowtransparency="true" loading="lazy"></iframe>
-                ` : `
-                  <div class="p-4 text-center text-gray-500">No se pudo construir el gráfico.</div>
-                `}
+              <div class="md:col-span-4 flex flex-wrap items-center gap-2">
+                <span class="font-medium">CA:</span>
+                <code class="font-mono text-xs sm:text-[13px] break-all md:whitespace-nowrap select-all">${t.address || '—'}</code>
+                <button class="copy relative inline-flex items-center gap-1 border rounded px-2 py-0.5 ml-1 dark:border-gray-600" data-copy="${t.address || ''}">
+                  Copiar
+                  <span class="tooltip absolute top-7 right-0 bg-black text-white text-[10px] px-2 py-0.5 rounded opacity-0 pointer-events-none transition-opacity">Copiado</span>
+                </button>
               </div>
-
+              <div><span class="font-medium">Liquidez:</span> ${t.liq != null ? fmtUsd(t.liq) : '—'}</div>
+              <div><span class="font-medium">Market Cap:</span> ${cap != null ? fmtUsd(cap) : '—'} (${badge})</div>
+              ${t.fdv != null ? `<div><span class="font-medium">FDV:</span> ${fmtUsd(t.fdv)}</div>` : ''}
               <div class="flex gap-2">
-                ${t.url ? `<a href="${t.url}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600">Abrir en Dexscreener</a>` : ''}
+                ${t.url ? `<a href="${t.url}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600">Dexscreener</a>` : ''}
                 ${t.xUrl ? `<a href="${t.xUrl}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600">X/Twitter</a>` : ''}
                 ${t.platform ? `<a href="${t.platform.url}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600">${t.platform.name}</a>` : ''}
               </div>
@@ -384,6 +369,7 @@
     const NFT_REFRESH_MS = 5 * 60 * 1000;
     let nftTimer = null;
 
+    // Cambia si usas otro Worker
     const ME_PROXY  = 'https://latamcap-me.cryptonotaz.workers.dev';
     const XINFO_PROXY = 'https://latamcap-me.cryptonotaz.workers.dev/x';
 
@@ -408,10 +394,23 @@
       } catch(e){ console.warn('nfts.json no disponible/ inválido, usando fallback', e); return NFTS_FALLBACK; }
     }
 
+    // precio SOL con fallbacks
     async function fetchSolPrice(){
-      try { const r = await fetch('https://price.jup.ag/v6/price?ids=SOL'); const j = await r.json(); const p = j?.data?.SOL?.price; if (typeof p === 'number') return p; } catch {}
-      try { const r = await fetch('https://price.jup.ag/v4/price?ids=SOL'); const j = await r.json(); const p = j?.data?.SOL?.price; if (typeof p === 'number') return p; } catch {}
-      try { const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd'); const j = await r.json(); const p = j?.solana?.usd; if (typeof p === 'number') return p; } catch {}
+      try { // Jupiter v6
+        const r = await fetch('https://price.jup.ag/v6/price?ids=SOL');
+        const j = await r.json(); const p = j?.data?.SOL?.price;
+        if (typeof p === 'number') return p;
+      } catch {}
+      try { // Jupiter v4
+        const r = await fetch('https://price.jup.ag/v4/price?ids=SOL');
+        const j = await r.json(); const p = j?.data?.SOL?.price;
+        if (typeof p === 'number') return p;
+      } catch {}
+      try { // CoinGecko
+        const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd');
+        const j = await r.json(); const p = j?.solana?.usd;
+        if (typeof p === 'number') return p;
+      } catch {}
       return null;
     }
 
@@ -709,7 +708,7 @@
     tbody.addEventListener('mousedown', lpStart);
     ['touchend','touchcancel','mouseup','mouseleave'].forEach(ev=>tbody.addEventListener(ev, lpEnd));
 
-    // toggle detalles
+    // toggle global de detalles para coins
     tbody.addEventListener('click', async (e) => {
       const copyBtn = e.target.closest('.copy');
       if (copyBtn) {
@@ -729,12 +728,13 @@
     // init
     setActiveTab('coins');
 
+    // tests rápidos
     (function runTests(){ try {
       console.assert(fmtUsdSmart(1.2345) === '$1.23','fmtUsdSmart');
       console.assert(lamportsToSOL(1e9) === 1,'lamportsToSOL');
     } catch(e){ console.warn('Tests warning:', e); } })();
 
-    // tema persistente
+    // 3) Script del botón de tema (persistente)
     (function () {
       const btn = document.getElementById('themeToggle');
       if (!btn) return;
