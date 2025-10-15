@@ -304,10 +304,6 @@
           </td>`;
         tbody.appendChild(tr);
 
-        // === NUEVO: gráfico Dexscreener embebido en el panel de detalles ===
-        const themeParam = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
-        const chartSrc = t.url ? `${t.url}${t.url.includes('?') ? '&' : '?'}embed=1&theme=${themeParam}` : null;
-
         const det = document.createElement('tr');
         det.className = 'details hidden bg-white/70 dark:bg-gray-800/70';
         det.innerHTML = `
@@ -335,22 +331,6 @@
                 ${t.xUrl ? `<a href="${t.xUrl}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600">X/Twitter</a>` : ''}
                 ${t.platform ? `<a href="${t.platform.url}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600">${t.platform.name}</a>` : ''}
               </div>
-
-              ${chartSrc ? `
-                <div class="md:col-span-4 mt-2">
-                  <div class="w-full h-80 rounded-xl overflow-hidden border dark:border-gray-700">
-                    <iframe
-                      src="${chartSrc}"
-                      loading="lazy"
-                      referrerpolicy="no-referrer"
-                      class="w-full h-full"
-                      frameborder="0"
-                      allowfullscreen
-                    ></iframe>
-                  </div>
-                </div>
-              ` : ''}
-
             </div>
           </td>`;
         tbody.appendChild(det);
@@ -674,8 +654,7 @@
       nftsSection.classList.toggle('hidden', tab !== 'nfts');
       creatorsSection.classList.toggle('hidden', tab !== 'creators');
       const on  = ['bg-black','text-white'];
-      the_off = ['bg-gray-200','dark:bg-gray-700','dark:text-gray-100'];
-      const off = the_off;
+      const off = ['bg-gray-200','dark:bg-gray-700','dark:text-gray-100'];
       [tabCoins, tabNfts, tabCreators].forEach(b => b?.classList.remove(...on, ...off));
       if (tab === 'coins')   { tabCoins?.classList.add(...on);    tabNfts?.classList.add(...off);    tabCreators?.classList.add(...off); }
       if (tab === 'nfts')    { tabNfts?.classList.add(...on);     tabCoins?.classList.add(...off);   tabCreators?.classList.add(...off); }
