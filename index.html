@@ -64,26 +64,33 @@
                     dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700"
              title="Índice LATAM Fear & Greed">
           <!-- Mini gauge -->
-          <svg id="fgGauge" viewBox="0 0 80 44" width="56" height="28" class="shrink-0">
-            <defs>
-              <linearGradient id="fgGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%"  stop-color="#ef4444"/><!-- rojo -->
-                <stop offset="50%" stop-color="#f59e0b"/><!-- amarillo -->
-                <stop offset="100%" stop-color="#22c55e"/><!-- verde -->
-              </linearGradient>
-            </defs>
-            <!-- arco -->
-            <path d="M6 40 A34 34 0 0 1 74 40"
-                  stroke="url(#fgGrad)" stroke-width="8" fill="none" stroke-linecap="round" opacity="0.9"/>
-            <!-- marcador -->
-            <circle id="fgMarker" cx="6" cy="40" r="4" fill="currentColor"/>
-          </svg>
-          <div class="flex flex-col leading-none">
-            <span class="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">LATAM F&amp;G</span>
-            <span id="fgValue" class="font-semibold tabular-nums">--</span>
-          </div>
-        </div>
-
+<!-- Chip LATAM SZN -->
+<div id="fgChip"
+     class="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm
+            bg-white text-gray-800 border-gray-300 select-none
+            dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700"
+     title="Índice Latam SZN">
+  <!-- Mini gauge -->
+  <svg id="fgGauge" viewBox="0 0 80 44" width="56" height="28" class="shrink-0">
+    <defs>
+      <linearGradient id="fgGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%"  stop-color="#ef4444"/><!-- rojo -->
+        <stop offset="50%" stop-color="#f59e0b"/><!-- amarillo -->
+        <stop offset="100%" stop-color="#22c55e"/><!-- verde -->
+      </linearGradient>
+    </defs>
+    <!-- arco -->
+    <path d="M6 40 A34 34 0 0 1 74 40"
+          stroke="url(#fgGrad)" stroke-width="8" fill="none" stroke-linecap="round" opacity="0.9"/>
+    <!-- marcador (más visible) -->
+    <circle id="fgMarker" cx="6" cy="40" r="5" fill="#ffffff"
+            stroke="currentColor" stroke-width="2"/>
+  </svg>
+  <div class="flex flex-col leading-none">
+    <span class="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">Latam SZN</span>
+    <span id="fgValue" class="font-semibold tabular-nums">--</span>
+  </div>
+</div>
         <!-- Botón: Solicitar listado -->
         <a
           href="https://forms.gle/ceKKLWemXwLpcXUK8"
@@ -299,7 +306,7 @@
 
         // Tooltip con desglose
         fgChip.title = [
-          `LATAM F&G: ${shown} (${bucket.label})`,
+          `LATAM SZN: ${shown} (${bucket.label})`,
           `Breadth: ${breadthScore.toFixed(1)}`,
           `Momentum: ${momentumScore.toFixed(1)}`,
           `Liquidez: ${liqScore.toFixed(1)}`,
@@ -921,6 +928,7 @@
   <!-- End Cloudflare Web Analytics -->
 </body>
 </html>
+
 
 
 
