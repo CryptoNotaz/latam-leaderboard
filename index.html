@@ -39,7 +39,7 @@
         <button id="tabCreators" class="px-3 py-1.5 rounded-lg bg-gray-200 dark:bg-gray-700 dark:text-gray-100">Creadores</button>
       </div>
 
-      <!-- 2) Contenedor: Botón tema + MC total + botón formulario -->
+      <!-- 2) Contenedor: Botón tema + MC total + F&G + botón formulario -->
       <div class="flex items-center gap-2">
         <button id="themeToggle"
           class="px-3 py-1.5 rounded-lg border text-sm
@@ -47,7 +47,7 @@
                  dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700 dark:hover:bg-gray-700"
           title="Cambiar tema">🌙</button>
 
-        <!-- Chip MC total (se oculta si no hay MC disponibles) -->
+        <!-- Chip MC total -->
         <div id="totalMc"
              class="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm
                     bg-white text-gray-800 border-gray-300
@@ -55,6 +55,33 @@
              title="Suma de Market Cap de los tokens listados (solo MC)">
           <span class="font-semibold">MC</span>
           <span id="totalMcValue" class="tabular-nums">$0</span>
+        </div>
+
+        <!-- Chip Fear & Greed LATAM -->
+        <div id="fgChip"
+             class="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm
+                    bg-white text-gray-800 border-gray-300 select-none
+                    dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700"
+             title="Índice LATAM Fear & Greed">
+          <!-- Mini gauge -->
+          <svg id="fgGauge" viewBox="0 0 80 44" width="56" height="28" class="shrink-0">
+            <defs>
+              <linearGradient id="fgGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%"  stop-color="#ef4444"/><!-- rojo -->
+                <stop offset="50%" stop-color="#f59e0b"/><!-- amarillo -->
+                <stop offset="100%" stop-color="#22c55e"/><!-- verde -->
+              </linearGradient>
+            </defs>
+            <!-- arco -->
+            <path d="M6 40 A34 34 0 0 1 74 40"
+                  stroke="url(#fgGrad)" stroke-width="8" fill="none" stroke-linecap="round" opacity="0.9"/>
+            <!-- marcador -->
+            <circle id="fgMarker" cx="6" cy="40" r="4" fill="currentColor"/>
+          </svg>
+          <div class="flex flex-col leading-none">
+            <span class="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">LATAM F&amp;G</span>
+            <span id="fgValue" class="font-semibold tabular-nums">--</span>
+          </div>
         </div>
 
         <!-- Botón: Solicitar listado -->
@@ -175,6 +202,114 @@
         totalMcBox.classList.remove('hidden');
       } else {
         totalMcBox.classList.add('hidden');
+      }
+    }
+
+    // ---------- Fear & Greed helpers ----------
+    const fgChip = document.getElementById('fgChip');
+    const fgValueEl = document.getElementById('fgValue');
+    const fgMarker = document.getElementById('fgMarker');
+    const FG_EMA_KEY = 'latam_fgi_ema';
+    const FG_ALPHA = 0.30; // suavizado
+
+    const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+    const mapClip = (v, a, b, A, B) => {
+      if (a === b) return (A+B)/2;
+      const t = clamp((v - a) / (b - a), 0, 1);
+      return A + (B - A) * t;
+    };
+    const mean = arr => arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0;
+    const stdev = arr => {
+      if (arr.length < 2) return 0;
+      const m = mean(arr);
+      const v = mean(arr.map(x => (x - m) ** 2));
+      return Math.sqrt(v);
+    };
+    const percentile = (arr, p) => {
+      if (!arr.length) return 0;
+      const a = [...arr].sort((x,y)=>x-y);
+      const idx = clamp((p/100)*(a.length-1), 0, a.length-1);
+      const lo = Math.floor(idx), hi = Math.ceil(idx);
+      if (lo === hi) return a[lo];
+      const t = idx - lo;
+      return a[lo]*(1-t) + a[hi]*t;
+    };
+
+    function bucketForScore(s){
+      if (s <= 24) return {label:'Extreme Fear', cls:'text-red-500'};
+      if (s <= 44) return {label:'Fear', cls:'text-orange-500'};
+      if (s <  56) return {label:'Neutral', cls:'text-gray-700 dark:text-gray-200'};
+      if (s <= 74) return {label:'Greed', cls:'text-green-500'};
+      return {label:'Extreme Greed', cls:'text-emerald-500'};
+    }
+
+    function updateFearIndex(pairs){
+      try{
+        const items = pairs.map(p => {
+          const ret = toNum(p?.priceChange?.h24);
+          const mc  = (typeof p?.marketCap === 'number') ? p.marketCap
+                     : (typeof p?.fdv === 'number') ? p.fdv : 0;
+          const liq = toNum(p?.liquidity?.usd) ?? 0;
+          return {ret, mc, liq};
+        }).filter(x => Number.isFinite(x.ret) && x.mc > 0);
+
+        if (items.length < 3) { fgChip.classList.add('hidden'); return; }
+
+        // 1) Breadth
+        const winners = items.filter(x => x.ret > 0).length;
+        const breadthScore = (winners / items.length) * 100;
+
+        // 2) Momentum ponderado (ret en decimales)
+        const sumMc = items.reduce((a,b)=>a+b.mc,0);
+        const wRetDec = items.reduce((a,b)=>a + (b.ret/100)*b.mc, 0) / (sumMc || 1);
+        const momentumScore = mapClip(wRetDec, -0.15, +0.15, 0, 100); // clip -15%..+15%
+
+        // 3) Salud de liquidez
+        const ratios = items.map(x => x.liq / x.mc).filter(Number.isFinite);
+        const p10 = percentile(ratios, 10), p90 = percentile(ratios, 90);
+        const liqScore = mapClip(mean(ratios), p10, p90, 0, 100);
+
+        // 4) Volatilidad (std de %24h en decimales; más vol = menos score)
+        const retsDec = items.map(x => x.ret/100);
+        const volStd  = stdev(retsDec);
+        const volScore = 100 - mapClip(volStd, 0, 0.25, 0, 100); // 25% std ≈ muy volátil
+
+        // Combinación
+        let score = 0.35*breadthScore + 0.35*momentumScore + 0.20*liqScore + 0.10*volScore;
+        score = clamp(score, 0, 100);
+
+        // EMA
+        const prev = Number(localStorage.getItem(FG_EMA_KEY));
+        const ema = Number.isFinite(prev) ? (prev + FG_ALPHA*(score - prev)) : score;
+        localStorage.setItem(FG_EMA_KEY, String(ema));
+        const shown = Math.round(ema);
+
+        // Render chip
+        const bucket = bucketForScore(shown);
+        fgValueEl.textContent = shown;
+        fgValueEl.className = 'font-semibold tabular-nums ' + bucket.cls;
+
+        // Mueve marcador de gauge (semicírculo: 0→izq, 100→der)
+        const r = 34, cx = 40, cy = 40;
+        const rad = Math.PI * (1 - shown/100);
+        const mx = cx + r * Math.cos(rad);
+        const my = cy + r * Math.sin(rad);
+        fgMarker.setAttribute('cx', String(mx));
+        fgMarker.setAttribute('cy', String(my));
+
+        // Tooltip con desglose
+        fgChip.title = [
+          `LATAM F&G: ${shown} (${bucket.label})`,
+          `Breadth: ${breadthScore.toFixed(1)}`,
+          `Momentum: ${momentumScore.toFixed(1)}`,
+          `Liquidez: ${liqScore.toFixed(1)}`,
+          `Volatilidad: ${volScore.toFixed(1)}`
+        ].join(' · ');
+
+        fgChip.classList.remove('hidden');
+      }catch(e){
+        console.warn('FG index error', e);
+        fgChip.classList.add('hidden');
       }
     }
 
@@ -372,7 +507,8 @@
         if (!list.length) { tbody.innerHTML = ''; statusEl.textContent = 'Agrega tokens a tokens.json'; return; }
         const pairs = await fetchAll(list);
         render(pairs);
-        updateTotalMc(pairs); // <--- Actualiza el chip MC total
+        updateTotalMc(pairs);
+        updateFearIndex(pairs); // <<--- F&G LATAM
         statusEl.textContent = `Actualizado: ${new Date().toLocaleTimeString()} · Auto 60s`;
       } catch (err) {
         console.error(err);
@@ -785,5 +921,7 @@
   <!-- End Cloudflare Web Analytics -->
 </body>
 </html>
+
+
 
 
