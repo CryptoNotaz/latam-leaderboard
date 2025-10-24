@@ -39,7 +39,7 @@
         <button id="tabCreators" class="px-3 py-1.5 rounded-lg bg-gray-200 dark:bg-gray-700 dark:text-gray-100">Creadores</button>
       </div>
 
-      <!-- 2) Contenedor: Botón tema + botón formulario -->
+      <!-- 2) Contenedor: Botón tema + MC total + botón formulario -->
       <div class="flex items-center gap-2">
         <button id="themeToggle"
           class="px-3 py-1.5 rounded-lg border text-sm
@@ -47,7 +47,17 @@
                  dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700 dark:hover:bg-gray-700"
           title="Cambiar tema">🌙</button>
 
-        <!-- Botón nuevo: Solicitar listado -->
+        <!-- Chip MC total (se oculta si no hay MC disponibles) -->
+        <div id="totalMc"
+             class="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm
+                    bg-white text-gray-800 border-gray-300
+                    dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700"
+             title="Suma de Market Cap de los tokens listados (solo MC)">
+          <span class="font-semibold">MC</span>
+          <span id="totalMcValue" class="tabular-nums">$0</span>
+        </div>
+
+        <!-- Botón: Solicitar listado -->
         <a
           href="https://forms.gle/ceKKLWemXwLpcXUK8"
           target="_blank" rel="noopener"
@@ -150,6 +160,24 @@
     const fmtUsdCompact = (n) => { try { return new Intl.NumberFormat('en-US', { style:'currency', currency:'USD', notation:'compact', maximumFractionDigits: 2 }).format(n); } catch { const abs=Math.abs(n),u=[['T',1e12],['B',1e9],['M',1e6],['K',1e3]]; for(const[s,v]of u)if(abs>=v)return '$'+(n/v).toFixed(2)+s; return fmtUsd(n);} };
     const toNum = (v) => { if (v===null||v===undefined) return null; const n = Number(String(v).replace(/[^0-9.]/g,'')); return Number.isFinite(n) ? n : null; };
 
+    // --- Total MC (suma de marketCap reales) ---
+    const totalMcBox   = document.getElementById('totalMc');
+    const totalMcValue = document.getElementById('totalMcValue');
+    function updateTotalMc(tokensRaw) {
+      if (!totalMcBox || !totalMcValue) return;
+      const sum = tokensRaw.reduce((acc, p) => {
+        const mc = (typeof p.marketCap === 'number') ? p.marketCap : null;
+        return acc + (mc || 0);
+      }, 0);
+      if (sum > 0) {
+        totalMcValue.textContent = fmtUsdCompact(sum);
+        totalMcBox.title = `Total MC: ${fmtUsd(sum)}`;
+        totalMcBox.classList.remove('hidden');
+      } else {
+        totalMcBox.classList.add('hidden');
+      }
+    }
+
     // ---------- Plataforma (Pump / Bonk) ----------
     const PLATFORM_ICONS = {
       pump: { primary: 'https://unavatar.io/pump.fun', fallback: 'https://pump.fun/favicon.ico' },
@@ -212,7 +240,7 @@
         const qSym = (p.quoteToken?.symbol || '').toUpperCase();
         const isUsd = USD_QUOTES.some(u => qSym.includes(u));
         const liq = p.liquidity?.usd ?? 0;
-        the_vol = p.volume?.h24 ?? 0; // (kept name as in original logic)
+        the_vol = p.volume?.h24 ?? 0;
         const vol = the_vol;
         const score = (isUsd ? 1 : 0) * 1e12 + liq * 1e6 + vol;
         const prev = best.get(base);
@@ -284,18 +312,18 @@
             </div>
           </td>
           <td class="w-20 sm:w-28 px-2 py-2 sm:px-4 sm:py-3">
-  ${t.platform ? `
-    <a href="${t.platform.url}" target="_blank" rel="noopener" class="inline-flex items-center">
-      <img
-        src="${t.platform.iconPrimary}"
-        onerror="this.onerror=null;this.src='${t.platform.iconFallback}'"
-        alt="${t.platform.name}"
-        class="w-4 h-4 rounded-sm"
-        referrerpolicy="no-referrer"
-      />
-    </a>
-  ` : `<span class="text-gray-400">—</span>`}
-</td>
+            ${t.platform ? `
+              <a href="${t.platform.url}" target="_blank" rel="noopener" class="inline-flex items-center">
+                <img
+                  src="${t.platform.iconPrimary}"
+                  onerror="this.onerror=null;this.src='${t.platform.iconFallback}'"
+                  alt="${t.platform.name}"
+                  class="w-4 h-4 rounded-sm"
+                  referrerpolicy="no-referrer"
+                />
+              </a>
+            ` : `<span class="text-gray-400">—</span>`}
+          </td>
           <td class="w-28 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">${t.priceUsd != null ? fmtUsdSmart(t.priceUsd) : '—'}</td>
           <td class="w-16 sm:w-20 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap ${chgClass}">${chg != null ? fmtNum(chg, 2) + '%' : '—'}</td>
           <td class="w-24 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">
@@ -344,6 +372,7 @@
         if (!list.length) { tbody.innerHTML = ''; statusEl.textContent = 'Agrega tokens a tokens.json'; return; }
         const pairs = await fetchAll(list);
         render(pairs);
+        updateTotalMc(pairs); // <--- Actualiza el chip MC total
         statusEl.textContent = `Actualizado: ${new Date().toLocaleTimeString()} · Auto 60s`;
       } catch (err) {
         console.error(err);
@@ -749,14 +778,12 @@
         setTheme(next);
       });
     })();
-      <!-- 🌐 Cloudflare Web Analytics -->
-    <!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "c7335ec6ec0c4d8ba06040d145c5166f"}'></script><!-- End Cloudflare Web Analytics -->
   </script>
+
+  <!-- 🌐 Cloudflare Web Analytics -->
+  <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "c7335ec6ec0c4d8ba06040d145c5166f"}'></script>
+  <!-- End Cloudflare Web Analytics -->
 </body>
 </html>
-
-
-
-
 
 
