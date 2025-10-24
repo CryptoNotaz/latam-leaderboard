@@ -16,10 +16,7 @@
   </script>
 
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- 1) Activa darkMode por clase -->
-  <script>
-    tailwind.config = { darkMode: 'class' };
-  </script>
+  <script> tailwind.config = { darkMode: 'class' };</script>
 
   <style>
     .transition-height { transition: height .2s ease; }
@@ -32,66 +29,67 @@
       <h1 class="text-2xl sm:text-3xl font-bold">Latam Market Cap</h1>
     </header>
 
+    <!-- NAV -->
     <nav class="mb-4 flex justify-center sm:justify-between items-center gap-2">
+      <!-- Tabs -->
       <div class="flex gap-2">
         <button id="tabCoins" class="px-3 py-1.5 rounded-lg bg-black text-white">Coins</button>
         <button id="tabNfts" class="px-3 py-1.5 rounded-lg bg-gray-200 dark:bg-gray-700 dark:text-gray-100">NFTs</button>
         <button id="tabCreators" class="px-3 py-1.5 rounded-lg bg-gray-200 dark:bg-gray-700 dark:text-gray-100">Creadores</button>
       </div>
 
-      <!-- 2) Contenedor: Botón tema + MC total + F&G + botón formulario -->
+      <!-- Grupo unido: Tema + MC + Latam SZN -->
       <div class="flex items-center gap-2">
-        <button id="themeToggle"
-          class="px-3 py-1.5 rounded-lg border text-sm
-                 bg-white text-gray-800 border-gray-300 hover:bg-gray-100
-                 dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700 dark:hover:bg-gray-700"
-          title="Cambiar tema">🌙</button>
+        <!-- Segmented group -->
+        <div
+          class="hidden sm:inline-flex items-stretch rounded-lg overflow-hidden border border-gray-300 dark:border-gray-700">
+          <!-- Tema -->
+          <button id="themeToggle"
+            class="px-3 py-1.5 text-sm bg-white text-gray-800 hover:bg-gray-100
+                   dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700">
+            🌙
+          </button>
 
-        <!-- Chip MC total -->
-        <div id="totalMc"
-             class="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm
-                    bg-white text-gray-800 border-gray-300
-                    dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700"
-             title="Suma de Market Cap de los tokens listados (solo MC)">
-          <span class="font-semibold">MC</span>
-          <span id="totalMcValue" class="tabular-nums">$0</span>
+          <!-- MC total -->
+          <div id="totalMc"
+               class="hidden px-3 py-1.5 text-sm bg-white text-gray-800 border-l border-gray-300
+                      dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700
+                      flex items-center gap-2"
+               title="Suma de Market Cap de los tokens listados (solo MC)">
+            <span class="font-semibold">MC</span>
+            <span id="totalMcValue" class="tabular-nums">$0</span>
+          </div>
+
+          <!-- LATAM SZN (Fear/Greed local) -->
+          <div id="fgChip"
+               class="hidden px-3 py-1.5 text-sm bg-white text-gray-800 border-l border-gray-300 select-none
+                      dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700
+                      flex items-center gap-2"
+               title="Índice Latam SZN">
+            <!-- Mini gauge -->
+            <svg id="fgGauge" viewBox="0 0 80 44" width="56" height="28" class="shrink-0">
+              <defs>
+                <linearGradient id="fgGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%"  stop-color="#ef4444"/><!-- rojo -->
+                  <stop offset="50%" stop-color="#f59e0b"/><!-- amarillo -->
+                  <stop offset="100%" stop-color="#22c55e"/><!-- verde -->
+                </linearGradient>
+              </defs>
+              <!-- arco -->
+              <path d="M6 40 A34 34 0 0 1 74 40"
+                    stroke="url(#fgGrad)" stroke-width="8" fill="none" stroke-linecap="round" opacity="0.9"/>
+              <!-- marcador -->
+              <circle id="fgMarker" cx="6" cy="40" r="5" fill="#ffffff"
+                      stroke="currentColor" stroke-width="2"/>
+            </svg>
+            <div class="flex flex-col leading-none">
+              <span class="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">Latam SZN</span>
+              <span id="fgValue" class="font-semibold tabular-nums">--</span>
+            </div>
+          </div>
         </div>
 
-        <!-- Chip Fear & Greed LATAM -->
-        <div id="fgChip"
-             class="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm
-                    bg-white text-gray-800 border-gray-300 select-none
-                    dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700"
-             title="Índice LATAM Fear & Greed">
-          <!-- Mini gauge -->
-<!-- Chip LATAM SZN -->
-<div id="fgChip"
-     class="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm
-            bg-white text-gray-800 border-gray-300 select-none
-            dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700"
-     title="Índice Latam SZN">
-  <!-- Mini gauge -->
-  <svg id="fgGauge" viewBox="0 0 80 44" width="56" height="28" class="shrink-0">
-    <defs>
-      <linearGradient id="fgGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%"  stop-color="#ef4444"/><!-- rojo -->
-        <stop offset="50%" stop-color="#f59e0b"/><!-- amarillo -->
-        <stop offset="100%" stop-color="#22c55e"/><!-- verde -->
-      </linearGradient>
-    </defs>
-    <!-- arco -->
-    <path d="M6 40 A34 34 0 0 1 74 40"
-          stroke="url(#fgGrad)" stroke-width="8" fill="none" stroke-linecap="round" opacity="0.9"/>
-    <!-- marcador (más visible) -->
-    <circle id="fgMarker" cx="6" cy="40" r="5" fill="#ffffff"
-            stroke="currentColor" stroke-width="2"/>
-  </svg>
-  <div class="flex flex-col leading-none">
-    <span class="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">Latam SZN</span>
-    <span id="fgValue" class="font-semibold tabular-nums">--</span>
-  </div>
-</div>
-        <!-- Botón: Solicitar listado -->
+        <!-- Botón: Solicitar listado (separado del grupo) -->
         <a
           href="https://forms.gle/ceKKLWemXwLpcXUK8"
           target="_blank" rel="noopener"
@@ -187,126 +185,90 @@
 
   <script>
     // ---------- utilidades comunes ----------
-    const USD_QUOTES = ['USD', 'USDC', 'USDT', 'DAI', 'USD1', 'USDE', 'USDX'];
-    const fmtNum = (n, max = 2) => new Intl.NumberFormat('en-US', { maximumFractionDigits: max }).format(n);
-    const fmtUsd = (n) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 }).format(n);
-    const fmtUsdSmart = (n) => { const o={style:'currency',currency:'USD'}; if (Math.abs(n)>=1){o.minimumFractionDigits=2;o.maximumFractionDigits=2;} else {o.minimumFractionDigits=5;o.maximumFractionDigits=5;} return new Intl.NumberFormat('en-US',o).format(n); };
-    const fmtUsdCompact = (n) => { try { return new Intl.NumberFormat('en-US', { style:'currency', currency:'USD', notation:'compact', maximumFractionDigits: 2 }).format(n); } catch { const abs=Math.abs(n),u=[['T',1e12],['B',1e9],['M',1e6],['K',1e3]]; for(const[s,v]of u)if(abs>=v)return '$'+(n/v).toFixed(2)+s; return fmtUsd(n);} };
-    const toNum = (v) => { if (v===null||v===undefined) return null; const n = Number(String(v).replace(/[^0-9.]/g,'')); return Number.isFinite(n) ? n : null; };
+    const USD_QUOTES = ['USD','USDC','USDT','DAI','USD1','USDE','USDX'];
+    const fmtNum = (n,max=2)=>new Intl.NumberFormat('en-US',{maximumFractionDigits:max}).format(n);
+    const fmtUsd = (n)=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2}).format(n);
+    const fmtUsdSmart=(n)=>{const o={style:'currency',currency:'USD'};if(Math.abs(n)>=1){o.minimumFractionDigits=2;o.maximumFractionDigits=2;}else{o.minimumFractionDigits=5;o.maximumFractionDigits=5;}return new Intl.NumberFormat('en-US',o).format(n);};
+    const fmtUsdCompact=(n)=>{try{return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',notation:'compact',maximumFractionDigits:2}).format(n);}catch{const abs=Math.abs(n),u=[['T',1e12],['B',1e9],['M',1e6],['K',1e3]];for(const[s,v]of u)if(abs>=v)return '$'+(n/v).toFixed(2)+s;return fmtUsd(n);}};
+    const toNum=(v)=>{if(v===null||v===undefined)return null;const n=Number(String(v).replace(/[^0-9.]/g,''));return Number.isFinite(n)?n:null;};
 
-    // --- Total MC (suma de marketCap reales) ---
-    const totalMcBox   = document.getElementById('totalMc');
-    const totalMcValue = document.getElementById('totalMcValue');
-    function updateTotalMc(tokensRaw) {
-      if (!totalMcBox || !totalMcValue) return;
-      const sum = tokensRaw.reduce((acc, p) => {
-        const mc = (typeof p.marketCap === 'number') ? p.marketCap : null;
-        return acc + (mc || 0);
-      }, 0);
-      if (sum > 0) {
-        totalMcValue.textContent = fmtUsdCompact(sum);
-        totalMcBox.title = `Total MC: ${fmtUsd(sum)}`;
-        totalMcBox.classList.remove('hidden');
-      } else {
-        totalMcBox.classList.add('hidden');
-      }
+    // --- Total MC ---
+    const totalMcBox=document.getElementById('totalMc');
+    const totalMcValue=document.getElementById('totalMcValue');
+    function updateTotalMc(tokensRaw){
+      if(!totalMcBox||!totalMcValue) return;
+      const sum=tokensRaw.reduce((acc,p)=>{const mc=(typeof p.marketCap==='number')?p.marketCap:null;return acc+(mc||0);},0);
+      if(sum>0){ totalMcValue.textContent=fmtUsdCompact(sum); totalMcBox.title=`Total MC: ${fmtUsd(sum)}`; totalMcBox.classList.remove('hidden'); }
+      else{ totalMcBox.classList.add('hidden'); }
     }
 
     // ---------- Fear & Greed helpers ----------
-    const fgChip = document.getElementById('fgChip');
-    const fgValueEl = document.getElementById('fgValue');
-    const fgMarker = document.getElementById('fgMarker');
-    const FG_EMA_KEY = 'latam_fgi_ema';
-    const FG_ALPHA = 0.30; // suavizado
+    const fgChip=document.getElementById('fgChip');
+    const fgValueEl=document.getElementById('fgValue');
+    const fgMarker=document.getElementById('fgMarker');
+    const FG_EMA_KEY='latam_fgi_ema';
+    const FG_ALPHA=0.30;
 
-    const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
-    const mapClip = (v, a, b, A, B) => {
-      if (a === b) return (A+B)/2;
-      const t = clamp((v - a) / (b - a), 0, 1);
-      return A + (B - A) * t;
-    };
-    const mean = arr => arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0;
-    const stdev = arr => {
-      if (arr.length < 2) return 0;
-      const m = mean(arr);
-      const v = mean(arr.map(x => (x - m) ** 2));
-      return Math.sqrt(v);
-    };
-    const percentile = (arr, p) => {
-      if (!arr.length) return 0;
-      const a = [...arr].sort((x,y)=>x-y);
-      const idx = clamp((p/100)*(a.length-1), 0, a.length-1);
-      const lo = Math.floor(idx), hi = Math.ceil(idx);
-      if (lo === hi) return a[lo];
-      const t = idx - lo;
-      return a[lo]*(1-t) + a[hi]*t;
-    };
+    const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+    const mapClip=(v,a,b,A,B)=>{if(a===b)return(A+B)/2;const t=clamp((v-a)/(b-a),0,1);return A+(B-A)*t;};
+    const mean=arr=>arr.length?arr.reduce((a,b)=>a+b,0)/arr.length:0;
+    const stdev=arr=>{if(arr.length<2)return 0;const m=mean(arr);const v=mean(arr.map(x=>(x-m)**2));return Math.sqrt(v);};
+    const percentile=(arr,p)=>{if(!arr.length)return 0;const a=[...arr].sort((x,y)=>x-y);const idx=clamp((p/100)*(a.length-1),0,a.length-1);const lo=Math.floor(idx),hi=Math.ceil(idx);if(lo===hi)return a[lo];const t=idx-lo;return a[lo]*(1-t)+a[hi]*t;};
 
     function bucketForScore(s){
-      if (s <= 24) return {label:'Extreme Fear', cls:'text-red-500'};
-      if (s <= 44) return {label:'Fear', cls:'text-orange-500'};
-      if (s <  56) return {label:'Neutral', cls:'text-gray-700 dark:text-gray-200'};
-      if (s <= 74) return {label:'Greed', cls:'text-green-500'};
-      return {label:'Extreme Greed', cls:'text-emerald-500'};
+      if(s<=24) return {label:'Extreme Fear',cls:'text-red-500'};
+      if(s<=44) return {label:'Fear',cls:'text-orange-500'};
+      if(s<56)  return {label:'Neutral',cls:'text-gray-700 dark:text-gray-200'};
+      if(s<=74) return {label:'Greed',cls:'text-green-500'};
+      return {label:'Extreme Greed',cls:'text-emerald-500'};
     }
 
     function updateFearIndex(pairs){
       try{
-        const items = pairs.map(p => {
-          const ret = toNum(p?.priceChange?.h24);
-          const mc  = (typeof p?.marketCap === 'number') ? p.marketCap
-                     : (typeof p?.fdv === 'number') ? p.fdv : 0;
-          const liq = toNum(p?.liquidity?.usd) ?? 0;
-          return {ret, mc, liq};
-        }).filter(x => Number.isFinite(x.ret) && x.mc > 0);
+        const items=pairs.map(p=>{
+          const ret=toNum(p?.priceChange?.h24);
+          const mc =(typeof p?.marketCap==='number')?p.marketCap:((typeof p?.fdv==='number')?p.fdv:0);
+          const liq=toNum(p?.liquidity?.usd)??0;
+          return {ret,mc,liq};
+        }).filter(x=>Number.isFinite(x.ret)&&x.mc>0);
 
-        if (items.length < 3) { fgChip.classList.add('hidden'); return; }
+        if(items.length<3){ fgChip.classList.add('hidden'); return; }
 
-        // 1) Breadth
-        const winners = items.filter(x => x.ret > 0).length;
-        const breadthScore = (winners / items.length) * 100;
+        const winners=items.filter(x=>x.ret>0).length;
+        const breadthScore=(winners/items.length)*100;
 
-        // 2) Momentum ponderado (ret en decimales)
-        const sumMc = items.reduce((a,b)=>a+b.mc,0);
-        const wRetDec = items.reduce((a,b)=>a + (b.ret/100)*b.mc, 0) / (sumMc || 1);
-        const momentumScore = mapClip(wRetDec, -0.15, +0.15, 0, 100); // clip -15%..+15%
+        const sumMc=items.reduce((a,b)=>a+b.mc,0);
+        const wRetDec=items.reduce((a,b)=>a+(b.ret/100)*b.mc,0)/(sumMc||1);
+        const momentumScore=mapClip(wRetDec,-0.15,+0.15,0,100);
 
-        // 3) Salud de liquidez
-        const ratios = items.map(x => x.liq / x.mc).filter(Number.isFinite);
-        const p10 = percentile(ratios, 10), p90 = percentile(ratios, 90);
-        const liqScore = mapClip(mean(ratios), p10, p90, 0, 100);
+        const ratios=items.map(x=>x.liq/x.mc).filter(Number.isFinite);
+        const p10=percentile(ratios,10), p90=percentile(ratios,90);
+        const liqScore=mapClip(mean(ratios),p10,p90,0,100);
 
-        // 4) Volatilidad (std de %24h en decimales; más vol = menos score)
-        const retsDec = items.map(x => x.ret/100);
-        const volStd  = stdev(retsDec);
-        const volScore = 100 - mapClip(volStd, 0, 0.25, 0, 100); // 25% std ≈ muy volátil
+        const retsDec=items.map(x=>x.ret/100);
+        const volStd=stdev(retsDec);
+        const volScore=100-mapClip(volStd,0,0.25,0,100);
 
-        // Combinación
-        let score = 0.35*breadthScore + 0.35*momentumScore + 0.20*liqScore + 0.10*volScore;
-        score = clamp(score, 0, 100);
+        let score=0.35*breadthScore+0.35*momentumScore+0.20*liqScore+0.10*volScore;
+        score=clamp(score,0,100);
 
-        // EMA
-        const prev = Number(localStorage.getItem(FG_EMA_KEY));
-        const ema = Number.isFinite(prev) ? (prev + FG_ALPHA*(score - prev)) : score;
-        localStorage.setItem(FG_EMA_KEY, String(ema));
-        const shown = Math.round(ema);
+        const prev=Number(localStorage.getItem(FG_EMA_KEY));
+        const ema=Number.isFinite(prev)?(prev+FG_ALPHA*(score-prev)):score;
+        localStorage.setItem(FG_EMA_KEY,String(ema));
+        const shown=Math.round(ema);
 
-        // Render chip
-        const bucket = bucketForScore(shown);
-        fgValueEl.textContent = shown;
-        fgValueEl.className = 'font-semibold tabular-nums ' + bucket.cls;
+        const bucket=bucketForScore(shown);
+        fgValueEl.textContent=shown;
+        fgValueEl.className='font-semibold tabular-nums '+bucket.cls;
 
-        // Mueve marcador de gauge (semicírculo: 0→izq, 100→der)
-        const r = 34, cx = 40, cy = 40;
-        const rad = Math.PI * (1 - shown/100);
-        const mx = cx + r * Math.cos(rad);
-        const my = cy + r * Math.sin(rad);
-        fgMarker.setAttribute('cx', String(mx));
-        fgMarker.setAttribute('cy', String(my));
+        // Mover marcador sobre el mismo arco (centro 40,40 radio 34; 0->izq, 100->der)
+        const r=34, cx=40, cy=40;
+        const rad=Math.PI*(1 - shown/100);
+        fgMarker.setAttribute('cx', String(cx + r*Math.cos(rad)));
+        fgMarker.setAttribute('cy', String(cy + r*Math.sin(rad)));
 
-        // Tooltip con desglose
-        fgChip.title = [
-          `LATAM SZN: ${shown} (${bucket.label})`,
+        fgChip.title=[
+          `Latam SZN: ${shown} (${bucket.label})`,
           `Breadth: ${breadthScore.toFixed(1)}`,
           `Momentum: ${momentumScore.toFixed(1)}`,
           `Liquidez: ${liqScore.toFixed(1)}`,
@@ -321,185 +283,162 @@
     }
 
     // ---------- Plataforma (Pump / Bonk) ----------
-    const PLATFORM_ICONS = {
-      pump: { primary: 'https://unavatar.io/pump.fun', fallback: 'https://pump.fun/favicon.ico' },
-      bonk: { primary: 'https://unavatar.io/bonk.fun', fallback: 'https://bonk.fun/favicon.ico' }
-    };
+    const PLATFORM_ICONS={pump:{primary:'https://unavatar.io/pump.fun',fallback:'https://pump.fun/favicon.ico'},
+                          bonk:{primary:'https://unavatar.io/bonk.fun',fallback:'https://bonk.fun/favicon.ico'}};
     function detectPlatform(address){
       if(!address) return null;
-      const ca = String(address).trim();
-      const low = ca.toLowerCase();
-      if (low.endsWith('pump')) {
-        return { key:'pump', name:'Pump.fun', url:`https://pump.fun/coin/${ca}`, iconPrimary:PLATFORM_ICONS.pump.primary, iconFallback:PLATFORM_ICONS.pump.fallback };
-      }
-      if (low.endsWith('bonk')) {
-        return { key:'bonk', name:'Bonk.fun', url:`https://bonk.fun/token/${ca}`, iconPrimary:PLATFORM_ICONS.bonk.primary, iconFallback:PLATFORM_ICONS.bonk.fallback };
-      }
+      const ca=String(address).trim(); const low=ca.toLowerCase();
+      if(low.endsWith('pump')) return {key:'pump',name:'Pump.fun',url:`https://pump.fun/coin/${ca}`,iconPrimary:PLATFORM_ICONS.pump.primary,iconFallback:PLATFORM_ICONS.pump.fallback};
+      if(low.endsWith('bonk')) return {key:'bonk',name:'Bonk.fun',url:`https://bonk.fun/token/${ca}`,iconPrimary:PLATFORM_ICONS.bonk.primary,iconFallback:PLATFORM_ICONS.bonk.fallback};
       return null;
     }
 
     // ---------- coins ----------
-    const tbody = document.getElementById('tbody');
-    const refreshBtn = document.getElementById('refreshBtn');
-    const statusEl = document.getElementById('status');
-    const REFRESH_MS = 60000;
+    const tbody=document.getElementById('tbody');
+    const refreshBtn=document.getElementById('refreshBtn');
+    const statusEl=document.getElementById('status');
+    const REFRESH_MS=60000;
 
-    const lamportsToSOL = (x) => (typeof x === 'number' ? x / 1e9 : null);
-    const fmtSol = (n) => n == null ? '—' : `◎${(Math.abs(n) >= 1 ? n.toFixed(2) : n.toFixed(3))}`;
-    const fmtSolCompact = (n) => n == null ? '—' : `◎${(Math.abs(n) >= 1000 ? (n/1000).toFixed(1)+'K' : (Math.abs(n)>=1?n.toFixed(2):n.toFixed(3)))}`;
+    const lamportsToSOL=(x)=>(typeof x==='number'?x/1e9:null);
+    const fmtSol=(n)=>n==null?'—':`◎${(Math.abs(n)>=1?n.toFixed(2):n.toFixed(3))}`;
+    const fmtSolCompact=(n)=>n==null?'—':`◎${(Math.abs(n)>=1000?(n/1000).toFixed(1)+'K':(Math.abs(n)>=1?n.toFixed(2):n.toFixed(3)))}`;
 
-    function getXUrl(info) {
-      const socials = info?.socials || [];
-      const byType = socials.find(s => /twitter|x/i.test(s?.type || s?.platform || ''));
-      if (byType?.url) return byType.url;
-      const byUrl = socials.find(s => /twitter\.com|x\.com/i.test(s?.url || ''));
-      return byUrl?.url || null;
+    function getXUrl(info){
+      const socials=info?.socials||[];
+      const byType=socials.find(s=>/twitter|x/i.test(s?.type||s?.platform||'')); if(byType?.url) return byType.url;
+      const byUrl=socials.find(s=>/twitter\.com|x\.com/i.test(s?.url||'')); return byUrl?.url||null;
     }
 
-    async function loadTokenList() {
-      try {
-        const res = await fetch('./tokens.json?ts=' + Date.now(), { cache: 'no-store' });
-        if (!res.ok) throw new Error('No se pudo cargar tokens.json');
-        const list = await res.json();
-        return list.map(x => ({ chain: (x.chain || 'solana').toLowerCase(), address: x.address }));
-      } catch (err) {
-        console.warn('tokens.json no disponible, usando TOKENS_FALLBACK', err);
-        statusEl.textContent = 'Usando lista demo; sube tokens.json para producción';
-        return TOKENS_FALLBACK.map(x => ({ chain: x.chain.toLowerCase(), address: x.address }));
+    async function loadTokenList(){
+      try{
+        const res=await fetch('./tokens.json?ts='+Date.now(),{cache:'no-store'});
+        if(!res.ok) throw new Error('No se pudo cargar tokens.json');
+        const list=await res.json();
+        return list.map(x=>({chain:(x.chain||'solana').toLowerCase(),address:x.address}));
+      }catch(err){
+        console.warn('tokens.json no disponible, usando TOKENS_FALLBACK',err);
+        statusEl.textContent='Usando lista demo; sube tokens.json para producción';
+        return TOKENS_FALLBACK.map(x=>({chain:x.chain.toLowerCase(),address:x.address}));
       }
     }
 
-    function groupByChain(items) {
-      const map = new Map();
-      for (const it of items) { if (!map.has(it.chain)) map.set(it.chain, []); map.get(it.chain).push(it.address); }
-      return map;
-    }
+    function groupByChain(items){ const map=new Map(); for(const it of items){ if(!map.has(it.chain)) map.set(it.chain,[]); map.get(it.chain).push(it.address);} return map; }
 
-    function chooseBestPairs(pairs) {
-      const best = new Map();
-      for (const p of pairs) {
-        const base = p?.baseToken?.address; if (!base) continue;
-        const qSym = (p.quoteToken?.symbol || '').toUpperCase();
-        const isUsd = USD_QUOTES.some(u => qSym.includes(u));
-        const liq = p.liquidity?.usd ?? 0;
-        the_vol = p.volume?.h24 ?? 0;
-        const vol = the_vol;
-        const score = (isUsd ? 1 : 0) * 1e12 + liq * 1e6 + vol;
-        const prev = best.get(base);
-        if (!prev || score > prev.__score) { p.__score = score; best.set(base, p); }
+    function chooseBestPairs(pairs){
+      const best=new Map();
+      for(const p of pairs){
+        const base=p?.baseToken?.address; if(!base) continue;
+        const qSym=(p.quoteToken?.symbol||'').toUpperCase();
+        const isUsd=USD_QUOTES.some(u=>qSym.includes(u));
+        const liq=p.liquidity?.usd??0;
+        the_vol=p.volume?.h24??0;
+        const score=(isUsd?1:0)*1e12 + liq*1e6 + the_vol;
+        const prev=best.get(base);
+        if(!prev||score>prev.__score){ p.__score=score; best.set(base,p); }
       }
       return [...best.values()];
     }
 
-    async function fetchByChain(chain, addresses) {
-      const chunk = (arr, n) => arr.length ? [arr.slice(0, n), ...chunk(arr.slice(n), n)] : [];
-      const chunks = chunk(addresses, 30);
-      const results = [];
-      for (const addrs of chunks) {
-        const url = `https://api.dexscreener.com/tokens/v1/${encodeURIComponent(chain)}/${addrs.join(',')}`;
-        const res = await fetch(url, { headers: { 'accept': 'application/json' } });
-        if (!res.ok) throw new Error(`Dexscreener ${chain} ${res.status}`);
-        const data = await res.json();
-        results.push(...data);
+    async function fetchByChain(chain,addresses){
+      const chunk=(arr,n)=>arr.length?[arr.slice(0,n),...chunk(arr.slice(n),n)]:[];
+      const chunks=chunk(addresses,30); const results=[];
+      for(const addrs of chunks){
+        const url=`https://api.dexscreener.com/tokens/v1/${encodeURIComponent(chain)}/${addrs.join(',')}`;
+        const res=await fetch(url,{headers:{'accept':'application/json'}});
+        if(!res.ok) throw new Error(`Dexscreener ${chain} ${res.status}`);
+        const data=await res.json(); results.push(...data);
       }
       return results;
     }
 
-    async function fetchAll(lines) {
-      const groups = groupByChain(lines);
-      const arrays = await Promise.all([...groups.entries()].map(([chain, addrs]) => fetchByChain(chain, addrs)));
+    async function fetchAll(lines){
+      const groups=groupByChain(lines);
+      const arrays=await Promise.all([...groups.entries()].map(([chain,addrs])=>fetchByChain(chain,addrs)));
       return chooseBestPairs(arrays.flat());
     }
 
-    function render(rows) {
-      tbody.innerHTML = '';
-      const tokens = rows.map(p => ({
-        name: p.baseToken?.name || '—',
-        symbol: (p.baseToken?.symbol || '').toUpperCase(),
-        address: p.baseToken?.address || '',
-        imageUrl: p.info?.imageUrl || '',
-        priceUsd: p.priceUsd ? Number(p.priceUsd) : null,
-        mc: (typeof p.marketCap === 'number' ? p.marketCap : null),
-        fdv: (typeof p.fdv === 'number' ? p.fdv : null),
-        liq: p.liquidity?.usd ?? null,
-        change24: p.priceChange?.h24 ?? null,
-        xUrl: getXUrl(p.info),
-        chainId: p.chainId,
-        url: p.url,
-        platform: detectPlatform(p.baseToken?.address)
+    function render(rows){
+      tbody.innerHTML='';
+      const tokens=rows.map(p=>({
+        name:p.baseToken?.name||'—',
+        symbol:(p.baseToken?.symbol||'').toUpperCase(),
+        address:p.baseToken?.address||'',
+        imageUrl:p.info?.imageUrl||'',
+        priceUsd:p.priceUsd?Number(p.priceUsd):null,
+        mc:(typeof p.marketCap==='number'?p.marketCap:null),
+        fdv:(typeof p.fdv==='number'?p.fdv:null),
+        liq:p.liquidity?.usd??null,
+        change24:p.priceChange?.h24??null,
+        xUrl:getXUrl(p.info),
+        chainId:p.chainId,
+        url:p.url,
+        platform:detectPlatform(p.baseToken?.address)
       }));
 
-      tokens.sort((a,b) => ((b.mc ?? b.fdv ?? 0) - (a.mc ?? a.fdv ?? 0)));
+      tokens.sort((a,b)=>((b.mc??b.fdv??0)-(a.mc??a.fdv??0)));
 
-      tokens.forEach((t, i) => {
-        const tr = document.createElement('tr');
-        tr.className = 'group cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/40 leading-tight';
-        const chg = t.change24; const chgClass = chg == null ? '' : (chg >= 0 ? 'text-green-600' : 'text-red-500');
-        const cap = t.mc ?? t.fdv; const badge = t.mc != null ? 'MC' : (t.fdv != null ? 'FDV' : '—');
-        tr.innerHTML = `
-          <td class="w-6 px-2 py-2 sm:px-4 sm:py-3 text-gray-500 dark:text-gray-400">${i + 1}</td>
+      tokens.forEach((t,i)=>{
+        const tr=document.createElement('tr');
+        tr.className='group cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/40 leading-tight';
+        const chg=t.change24; const chgClass=chg==null?'':(chg>=0?'text-green-600':'text-red-500');
+        const cap=t.mc??t.fdv; const badge=t.mc!=null?'MC':(t.fdv!=null?'FDV':'—');
+        tr.innerHTML=`
+          <td class="w-6 px-2 py-2 sm:px-4 sm:py-3 text-gray-500 dark:text-gray-400">${i+1}</td>
           <td class="px-2 py-2 sm:px-4 sm:py-3">
             <div class="flex items-center gap-1.5 sm:gap-2 min-w-0">
-              ${t.imageUrl ? `<img src="${t.imageUrl}" class="w-5 h-5 rounded-full"/>` : ''}
-              <span class="font-semibold truncate lp-copy" data-copy="${t.address || ''}" title="Mantén presionado para copiar CA">${t.symbol || t.name}</span>
+              ${t.imageUrl?`<img src="${t.imageUrl}" class="w-5 h-5 rounded-full"/>`:''}
+              <span class="font-semibold truncate lp-copy" data-copy="${t.address||''}" title="Mantén presionado para copiar CA">${t.symbol||t.name}</span>
               <span class="inline-flex text-[10px] px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-700">${t.chainId}</span>
-              ${t.url ? `<a href="${t.url}" class="hidden md:inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200 dark:hover:bg-gray-700" title="Ver en Dexscreener">↗</a>` : ''}
-              ${t.xUrl ? `<a href="${t.xUrl}" class="hidden md:inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200 dark:hover:bg-gray-700" title="X / Twitter">
+              ${t.url?`<a href="${t.url}" class="hidden md:inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200 dark:hover:bg-gray-700" title="Ver en Dexscreener">↗</a>`:''}
+              ${t.xUrl?`<a href="${t.xUrl}" class="hidden md:inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200 dark:hover:bg-gray-700" title="X / Twitter">
                 <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="currentColor" aria-hidden="true"><path d="M18.244 3.515h3.167l-6.92 7.91 8.11 9.06H19.21l-5.66-6.328-6.465 6.328H3.917l7.405-7.245-7.87-8.726h4.04l5.157 5.723 5.595-5.723Zm-1.112 16.01h1.755L7.94 5.864H6.06l11.072 13.662Z"></path></svg>
-              </a>` : ''}
-              ${t.address ? `<button class="copy relative shrink-0 hidden sm:inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200 dark:hover:bg-gray-700" data-copy="${t.address}" aria-label="Copiar CA">
+              </a>`:''}
+              ${t.address?`<button class="copy relative shrink-0 hidden sm:inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200 dark:hover:bg-gray-700" data-copy="${t.address}" aria-label="Copiar CA">
                 <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="currentColor" aria-hidden="true"><path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"></path></svg>
                 <span class="tooltip absolute top-7 right-0 bg-black text-white text-[10px] px-2 py-0.5 rounded opacity-0 pointer-events-none transition-opacity">Copiado</span>
-              </button>` : ''}
+              </button>`:''}
             </div>
           </td>
           <td class="w-20 sm:w-28 px-2 py-2 sm:px-4 sm:py-3">
-            ${t.platform ? `
+            ${t.platform?`
               <a href="${t.platform.url}" target="_blank" rel="noopener" class="inline-flex items-center">
-                <img
-                  src="${t.platform.iconPrimary}"
-                  onerror="this.onerror=null;this.src='${t.platform.iconFallback}'"
-                  alt="${t.platform.name}"
-                  class="w-4 h-4 rounded-sm"
-                  referrerpolicy="no-referrer"
-                />
-              </a>
-            ` : `<span class="text-gray-400">—</span>`}
+                <img src="${t.platform.iconPrimary}" onerror="this.onerror=null;this.src='${t.platform.iconFallback}'" alt="${t.platform.name}" class="w-4 h-4 rounded-sm" referrerpolicy="no-referrer"/>
+              </a>`:`<span class="text-gray-400">—</span>`}
           </td>
-          <td class="w-28 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">${t.priceUsd != null ? fmtUsdSmart(t.priceUsd) : '—'}</td>
-          <td class="w-16 sm:w-20 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap ${chgClass}">${chg != null ? fmtNum(chg, 2) + '%' : '—'}</td>
+          <td class="w-28 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">${t.priceUsd!=null?fmtUsdSmart(t.priceUsd):'—'}</td>
+          <td class="w-16 sm:w-20 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap ${chgClass}">${chg!=null?fmtNum(chg,2)+'%':'—'}</td>
           <td class="w-24 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">
-            <span class="md:hidden">${cap != null ? fmtUsdCompact(cap) : '—'}</span>
-            <span class="hidden md:inline">${cap != null ? fmtUsd(cap) : '—'} <span class="ml-1 text-[10px] px-1 py-0.5 rounded bg-gray-100 dark:bg-gray-700 border dark:border-gray-600">${badge}</span></span>
+            <span class="md:hidden">${cap!=null?fmtUsdCompact(cap):'—'}</span>
+            <span class="hidden md:inline">${cap!=null?fmtUsd(cap):'—'} <span class="ml-1 text-[10px] px-1 py-0.5 rounded bg-gray-100 dark:bg-gray-700 border dark:border-gray-600">${badge}</span></span>
           </td>`;
         tbody.appendChild(tr);
 
-        const det = document.createElement('tr');
-        det.className = 'details hidden bg-white/70 dark:bg-gray-800/70';
-        det.innerHTML = `
+        const det=document.createElement('tr');
+        det.className='details hidden bg-white/70 dark:bg-gray-800/70';
+        det.innerHTML=`
           <td colspan="6" class="px-4 py-3">
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs text-gray-700 dark:text-gray-300">
               <div class="md:col-span-4 flex items-center gap-2 text-sm">
-                ${t.imageUrl ? `<img src="${t.imageUrl}" class="w-5 h-5 rounded-full"/>` : ''}
-                <span class="font-semibold">${t.name || '—'}</span>
+                ${t.imageUrl?`<img src="${t.imageUrl}" class="w-5 h-5 rounded-full"/>`:''}
+                <span class="font-semibold">${t.name||'—'}</span>
                 <span class="text-xs text-gray-500 dark:text-gray-400 uppercase">${t.symbol}</span>
                 <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-700">${t.chainId}</span>
               </div>
               <div class="md:col-span-4 flex flex-wrap items-center gap-2">
                 <span class="font-medium">CA:</span>
-                <code class="font-mono text-xs sm:text-[13px] break-all md:whitespace-nowrap select-all">${t.address || '—'}</code>
-                <button class="copy relative inline-flex items-center gap-1 border rounded px-2 py-0.5 ml-1 dark:border-gray-600" data-copy="${t.address || ''}">
+                <code class="font-mono text-xs sm:text-[13px] break-all md:whitespace-nowrap select-all">${t.address||'—'}</code>
+                <button class="copy relative inline-flex items-center gap-1 border rounded px-2 py-0.5 ml-1 dark:border-gray-600" data-copy="${t.address||''}">
                   Copiar
                   <span class="tooltip absolute top-7 right-0 bg-black text-white text-[10px] px-2 py-0.5 rounded opacity-0 pointer-events-none transition-opacity">Copiado</span>
                 </button>
               </div>
-              <div><span class="font-medium">Liquidez:</span> ${t.liq != null ? fmtUsd(t.liq) : '—'}</div>
-              <div><span class="font-medium">Market Cap:</span> ${cap != null ? fmtUsd(cap) : '—'} (${badge})</div>
-              ${t.fdv != null ? `<div><span class="font-medium">FDV:</span> ${fmtUsd(t.fdv)}</div>` : ''}
+              <div><span class="font-medium">Liquidez:</span> ${t.liq!=null?fmtUsd(t.liq):'—'}</div>
+              <div><span class="font-medium">Market Cap:</span> ${cap!=null?fmtUsd(cap):'—'} (${badge})</div>
+              ${t.fdv!=null?`<div><span class="font-medium">FDV:</span> ${fmtUsd(t.fdv)}</div>`:''}
               <div class="flex gap-2">
-                ${t.url ? `<a href="${t.url}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600">Dexscreener</a>` : ''}
-                ${t.xUrl ? `<a href="${t.xUrl}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600">X/Twitter</a>` : ''}
-                ${t.platform ? `<a href="${t.platform.url}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600">${t.platform.name}</a>` : ''}
+                ${t.url?`<a href="${t.url}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600">Dexscreener</a>`:''}
+                ${t.xUrl?`<a href="${t.xUrl}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600">X/Twitter</a>`:''}
+                ${t.platform?`<a href="${t.platform.url}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600">${t.platform.name}</a>`:''}
               </div>
             </div>
           </td>`;
@@ -507,425 +446,317 @@
       });
     }
 
-    async function refresh() {
-      try {
-        statusEl.textContent = 'Cargando…';
-        const list = await loadTokenList();
-        if (!list.length) { tbody.innerHTML = ''; statusEl.textContent = 'Agrega tokens a tokens.json'; return; }
-        const pairs = await fetchAll(list);
+    async function refresh(){
+      try{
+        statusEl.textContent='Cargando…';
+        const list=await loadTokenList();
+        if(!list.length){ tbody.innerHTML=''; statusEl.textContent='Agrega tokens a tokens.json'; return; }
+        const pairs=await fetchAll(list);
         render(pairs);
         updateTotalMc(pairs);
-        updateFearIndex(pairs); // <<--- F&G LATAM
-        statusEl.textContent = `Actualizado: ${new Date().toLocaleTimeString()} · Auto 60s`;
-      } catch (err) {
+        updateFearIndex(pairs);
+        statusEl.textContent=`Actualizado: ${new Date().toLocaleTimeString()} · Auto 60s`;
+      }catch(err){
         console.error(err);
-        statusEl.textContent = 'Error al actualizar.';
+        statusEl.textContent='Error al actualizar.';
       }
     }
 
-    const TOKENS_FALLBACK = [
-      { "chain": "solana", "address": "BS7HxRitaY5ipGfbek1nmatWLbaS9yoWRSEQzCb3pump" },
-      { "chain": "solana", "address": "DsMWZg6mkheTV2XTkbUtWcsXaajTzEkk1TC7o6Fmpump" },
-      { "chain": "solana", "address": "9Uxjbn2TyfEmjaYs1qXiLt3FbE3VDa5UMkvQGZwQpump" },
-      { "chain": "solana", "address": "9RLoB3YZwk9sK78ZhmiSAj8CtPhssuJR1pVR326Vpump" }
+    const TOKENS_FALLBACK=[
+      {"chain":"solana","address":"BS7HxRitaY5ipGfbek1nmatWLbaS9yoWRSEQzCb3pump"},
+      {"chain":"solana","address":"DsMWZg6mkheTV2XTkbUtWcsXaajTzEkk1TC7o6Fmpump"},
+      {"chain":"solana","address":"9Uxjbn2TyfEmjaYs1qXiLt3FbE3VDa5UMkvQGZwQpump"},
+      {"chain":"solana","address":"9RLoB3YZwk9sK78ZhmiSAj8CtPhssuJR1pVR326Vpump"}
     ];
 
-    refreshBtn.addEventListener('click', refresh);
-    refresh();
-    setInterval(refresh, REFRESH_MS);
+    document.getElementById('refreshBtn').addEventListener('click',refresh);
+    refresh(); setInterval(refresh,60000);
 
     // ---------- NFTs ----------
-    const nftTbody = document.getElementById('nftTbody');
-    const nftStatus = document.getElementById('nftStatus');
-    const nftRefreshBtn = document.getElementById('nftRefreshBtn');
-    const NFT_REFRESH_MS = 5 * 60 * 1000;
-    let nftTimer = null;
+    const nftTbody=document.getElementById('nftTbody');
+    const nftStatus=document.getElementById('nftStatus');
+    const nftRefreshBtn=document.getElementById('nftRefreshBtn');
+    const NFT_REFRESH_MS=5*60*1000; let nftTimer=null;
 
-    // Cambia si usas otro Worker
-    const ME_PROXY  = 'https://latamcap-me.cryptonotaz.workers.dev';
-    const XINFO_PROXY = 'https://latamcap-me.cryptonotaz.workers.dev/x';
+    const ME_PROXY='https://latamcap-me.cryptonotaz.workers.dev';
+    const XINFO_PROXY='https://latamcap-me.cryptonotaz.workers.dev/x';
 
-    const NFTS_FALLBACK = [{ chain:'solana', source:'magiceden', slug:'v1ps', name:'V1PS', image:'./v1ps-logo.png' }];
+    const NFTS_FALLBACK=[{chain:'solana',source:'magiceden',slug:'v1ps',name:'V1PS',image:'./v1ps-logo.png'}];
 
-    function slugFromUrl(url){ if (!url) return null; const m = url.match(/\/marketplace\/([^\/?#]+)/i); return m ? m[1] : null; }
+    function slugFromUrl(url){ if(!url) return null; const m=url.match(/\/marketplace\/([^\/?#]+)/i); return m?m[1]:null; }
 
     async function loadNftList(){
-      try {
-        const r = await fetch('./nfts.json?ts=' + Date.now(), { cache:'no-store' });
-        if (!r.ok) throw new Error('No nfts.json ('+r.status+')');
-        const raw = await r.json();
-        if (!Array.isArray(raw)) throw new Error('nfts.json debe ser un array');
-        return raw.map(it => ({
-          ...it,
-          slug: it.slug || slugFromUrl(it.url) || '',
-          supply: toNum(it.supply),
-          floorSOL: toNum(it.floorSOL),
-          listed: toNum(it.listed),
-          vol24hSOL: toNum(it.vol24hSOL),
-        })).filter(it => it.slug);
-      } catch(e){ console.warn('nfts.json no disponible/ inválido, usando fallback', e); return NFTS_FALLBACK; }
+      try{
+        const r=await fetch('./nfts.json?ts='+Date.now(),{cache:'no-store'});
+        if(!r.ok) throw new Error('No nfts.json ('+r.status+')');
+        const raw=await r.json();
+        if(!Array.isArray(raw)) throw new Error('nfts.json debe ser un array');
+        return raw.map(it=>({...it,slug:it.slug||slugFromUrl(it.url)||'',supply:toNum(it.supply),floorSOL:toNum(it.floorSOL),listed:toNum(it.listed),vol24hSOL:toNum(it.vol24hSOL)})).filter(it=>it.slug);
+      }catch(e){ console.warn('nfts.json no disponible/ inválido, usando fallback',e); return NFTS_FALLBACK; }
     }
 
-    // precio SOL con fallbacks
     async function fetchSolPrice(){
-      try { // Jupiter v6
-        const r = await fetch('https://price.jup.ag/v6/price?ids=SOL');
-        const j = await r.json(); const p = j?.data?.SOL?.price;
-        if (typeof p === 'number') return p;
-      } catch {}
-      try { // Jupiter v4
-        const r = await fetch('https://price.jup.ag/v4/price?ids=SOL');
-        const j = await r.json(); const p = j?.data?.SOL?.price;
-        if (typeof p === 'number') return p;
-      } catch {}
-      try { // CoinGecko
-        const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd');
-        const j = await r.json(); const p = j?.solana?.usd;
-        if (typeof p === 'number') return p;
-      } catch {}
+      try{const r=await fetch('https://price.jup.ag/v6/price?ids=SOL'); const j=await r.json(); const p=j?.data?.SOL?.price; if(typeof p==='number') return p;}catch{}
+      try{const r=await fetch('https://price.jup.ag/v4/price?ids=SOL'); const j=await r.json(); const p=j?.data?.SOL?.price; if(typeof p==='number') return p;}catch{}
+      try{const r=await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd'); const j=await r.json(); const p=j?.solana?.usd; if(typeof p==='number') return p;}catch{}
       return null;
     }
 
     async function fetchFromProxy(slugs){
-      const url = `${ME_PROXY}?slugs=${encodeURIComponent(slugs.join(','))}`;
-      const r = await fetch(url, { headers:{'accept':'application/json'} });
-      if (!r.ok) throw new Error('Proxy ME error ' + r.status);
+      const url=`${ME_PROXY}?slugs=${encodeURIComponent(slugs.join(','))}`;
+      const r=await fetch(url,{headers:{'accept':'application/json'}});
+      if(!r.ok) throw new Error('Proxy ME error '+r.status);
       return await r.json();
     }
 
     async function fetchNftsAll(cfgList){
-      const slugs = cfgList.map(it => it.slug).filter(Boolean);
-      let proxy = {};
-      if (ME_PROXY && slugs.length) {
-        try { proxy = await fetchFromProxy(slugs); } catch(e){ console.warn(e); }
-      }
-      const rows = cfgList.map(cfg => {
-        const d = proxy[cfg.slug] || {};
-        const floorSOL = (cfg.floorSOL!=null ? cfg.floorSOL : lamportsToSOL(d.floorLamports));
-        const listed   = (cfg.listed!=null   ? cfg.listed   : toNum(d.listed));
-        const vol24hSOL= (cfg.vol24hSOL!=null? cfg.vol24hSOL: lamportsToSOL(d.vol24hLamports));
-        const supProxy = toNum(d.supply ?? d.totalSupply ?? d.items ?? d.itemsAvailable ?? d.size ?? d.maxSupply);
-        const supply   = (cfg.supply!=null ? cfg.supply : supProxy);
-        return { slug: cfg.slug, name: cfg.name || d.name || cfg.slug, image: cfg.image || d.image || '', floorSOL, listed, vol24hSOL, supply, links: cfg.links || d.links || { me: `https://magiceden.io/marketplace/${cfg.slug}` } };
+      const slugs=cfgList.map(it=>it.slug).filter(Boolean);
+      let proxy={}; if(ME_PROXY&&slugs.length){ try{ proxy=await fetchFromProxy(slugs); }catch(e){ console.warn(e); } }
+      const rows=cfgList.map(cfg=>{
+        const d=proxy[cfg.slug]||{};
+        const floorSOL=(cfg.floorSOL!=null?cfg.floorSOL: (typeof d.floorLamports==='number'? d.floorLamports/1e9 : null));
+        const listed=(cfg.listed!=null?cfg.listed:toNum(d.listed));
+        const vol24hSOL=(cfg.vol24hSOL!=null?cfg.vol24hSOL:(typeof d.vol24hLamports==='number'? d.vol24hLamports/1e9 : null));
+        const supProxy=toNum(d.supply ?? d.totalSupply ?? d.items ?? d.itemsAvailable ?? d.size ?? d.maxSupply);
+        const supply=(cfg.supply!=null?cfg.supply:supProxy);
+        return {slug:cfg.slug,name:cfg.name||d.name||cfg.slug,image:cfg.image||d.image||'',floorSOL,listed,vol24hSOL,supply,links:cfg.links||d.links||{me:`https://magiceden.io/marketplace/${cfg.slug}`}};
       });
-
-      const anyHasFloor = rows.some(r => typeof r.floorSOL === 'number');
-      const solUsd = anyHasFloor ? await fetchSolPrice() : null;
-
-      return rows.map(x => {
-        const mcSOL = (typeof x.floorSOL === 'number' && typeof x.supply === 'number') ? x.floorSOL * x.supply : null;
-        const mcUSD = (solUsd && typeof mcSOL === 'number') ? mcSOL * solUsd : null;
-        return { ...x,
-          floorUSD: (solUsd && typeof x.floorSOL === 'number') ? x.floorSOL * solUsd : null,
-          mcFloorSOL: mcSOL,
-          mcFloorUSD: mcUSD
-        };
+      const anyHasFloor=rows.some(r=>typeof r.floorSOL==='number');
+      const solUsd=anyHasFloor?await fetchSolPrice():null;
+      return rows.map(x=>{
+        const mcSOL=(typeof x.floorSOL==='number'&&typeof x.supply==='number')?x.floorSOL*x.supply:null;
+        const mcUSD=(solUsd&&typeof mcSOL==='number')?mcSOL*solUsd:null;
+        return {...x,floorUSD:(solUsd&&typeof x.floorSOL==='number')?x.floorSOL*solUsd:null,mcFloorSOL:mcSOL,mcFloorUSD:mcUSD};
       });
     }
 
     function renderNfts(rows){
-      nftTbody.innerHTML = '';
+      nftTbody.innerHTML='';
       rows.forEach((c,i)=>{
-        const tr = document.createElement('tr');
-        tr.className = 'group cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/40 leading-tight';
-        tr.innerHTML = `
+        const tr=document.createElement('tr');
+        tr.className='group cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/40 leading-tight';
+        tr.innerHTML=`
           <td class="w-6 px-2 py-2 sm:px-4 sm:py-3 text-gray-500 dark:text-gray-400">${i+1}</td>
           <td class="px-2 py-2 sm:px-4 sm:py-3">
             <div class="flex items-center gap-2 min-w-0">
-              ${c.image ? `<img src="${c.image}" class="w-5 h-5 rounded"/>` : ''}
+              ${c.image?`<img src="${c.image}" class="w-5 h-5 rounded"/>`:''}
               <span class="font-semibold truncate">${c.name}</span>
             </div>
           </td>
-          <td class="w-24 sm:w-28 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">${fmtSol(c.floorSOL)} ${c.floorUSD? `<span class='text-gray-500 dark:text-gray-400'>(${fmtUsd(c.floorUSD)})</span>` : ''}</td>
+          <td class="w-24 sm:w-28 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">${fmtSol(c.floorSOL)} ${c.floorUSD?`<span class='text-gray-500 dark:text-gray-400'>(${fmtUsd(c.floorUSD)})</span>`:''}</td>
           <td class="w-20 sm:w-24 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">${fmtSolCompact(c.vol24hSOL)}</td>
-          <td class="w-20 sm:w-24 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">${c.supply!=null ? fmtNum(c.supply,0) : '—'}</td>
+          <td class="w-20 sm:w-24 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">${c.supply!=null?fmtNum(c.supply,0):'—'}</td>
           <td class="w-24 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">
-            ${c.mcFloorUSD != null ? fmtUsdCompact(c.mcFloorUSD)
-              : (c.mcFloorSOL != null ? `◎${fmtNum(c.mcFloorSOL,2)}` : '—')}
+            ${c.mcFloorUSD!=null?fmtUsdCompact(c.mcFloorUSD):(c.mcFloorSOL!=null?`◎${fmtNum(c.mcFloorSOL,2)}`:'—')}
           </td>`;
         nftTbody.appendChild(tr);
 
-        const det = document.createElement('tr');
-        det.className = 'details hidden bg-white/70 dark:bg-gray-800/70';
-        det.innerHTML = `
+        const det=document.createElement('tr');
+        det.className='details hidden bg-white/70 dark:bg-gray-800/70';
+        det.innerHTML=`
           <td colspan="6" class="px-4 py-3">
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs text-gray-700 dark:text-gray-300">
               <div class="md:col-span-4 flex items-center gap-2 text-sm">
-                ${c.image ? `<img src="${c.image}" class="w-6 h-6 rounded"/>` : ''}
+                ${c.image?`<img src="${c.image}" class="w-6 h-6 rounded"/>`:''}
                 <span class="font-semibold">${c.name}</span>
                 <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-700">solana</span>
               </div>
-              <div><span class="font-medium">Floor:</span> ${c.floorUSD? fmtUsd(c.floorUSD)+' · ' : ''}${fmtSol(c.floorSOL)}</div>
-              <div><span class="font-medium">Listados:</span> ${c.listed ?? '—'}</div>
+              <div><span class="font-medium">Floor:</span> ${c.floorUSD?fmtUsd(c.floorUSD)+' · ':''}${fmtSol(c.floorSOL)}</div>
+              <div><span class="font-medium">Listados:</span> ${c.listed??'—'}</div>
               <div><span class="font-medium">Vol 24h:</span> ${c.vol24hSOL==null?'—':`◎${c.vol24hSOL.toFixed(2)}`}</div>
-              ${c.supply!=null ? `<div><span class="font-medium">Supply:</span> ${fmtNum(c.supply,0)}</div>` : ''}
+              ${c.supply!=null?`<div><span class="font-medium">Supply:</span> ${fmtNum(c.supply,0)}</div>`:''}
               <div class="flex gap-2">
                 <a href="${c.links.me}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600">Magic Eden</a>
-                ${c.links.x ? `<a href="${c.links.x}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600">X/Twitter</a>` : ''}
-                ${c.links.web ? `<a href="${c.links.web}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600">Web</a>` : ''}
-                ${c.links.discord ? `<a href="${c.links.discord}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600">Discord</a>` : ''}
+                ${c.links.x?`<a href="${c.links.x}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600">X/Twitter</a>`:''}
+                ${c.links.web?`<a href="${c.links.web}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600">Web</a>`:''}
+                ${c.links.discord?`<a href="${c.links.discord}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600">Discord</a>`:''}
               </div>
             </div>
           </td>`;
         nftTbody.appendChild(det);
 
-        tr.addEventListener('click', (e)=>{
-          if (e.target.closest('a,button')) return;
-          det.classList.toggle('hidden');
-        });
+        tr.addEventListener('click',(e)=>{ if(e.target.closest('a,button')) return; det.classList.toggle('hidden'); });
       });
     }
 
     async function nftRefresh(){
       try{
-        nftStatus.textContent = 'Cargando…';
-        const list = await loadNftList();
-        if (!list.length) { nftTbody.innerHTML=''; nftStatus.textContent='Agrega colecciones a nfts.json'; return; }
-        const rowsRaw = await fetchNftsAll(list);
-        const rows = [...rowsRaw].sort((a,b)=>
-          (b.mcFloorUSD ?? 0) - (a.mcFloorUSD ?? 0) ||
-          (b.floorUSD ?? 0) - (a.floorUSD ?? 0) ||
-          (b.floorSOL ?? 0) - (a.floorSOL ?? 0)
-        );
+        nftStatus.textContent='Cargando…';
+        const list=await loadNftList();
+        if(!list.length){ nftTbody.innerHTML=''; nftStatus.textContent='Agrega colecciones a nfts.json'; return; }
+        const rowsRaw=await fetchNftsAll(list);
+        const rows=[...rowsRaw].sort((a,b)=>(b.mcFloorUSD??0)-(a.mcFloorUSD??0)||(b.floorUSD??0)-(a.floorUSD??0)||(b.floorSOL??0)-(a.floorSOL??0));
         renderNfts(rows);
-        nftStatus.textContent = `Actualizado: ${new Date().toLocaleTimeString()} · Auto 5m`;
-      }catch(err){
-        console.error(err);
-        nftStatus.textContent = 'Error al actualizar NFTs.';
-      }
+        nftStatus.textContent=`Actualizado: ${new Date().toLocaleTimeString()} · Auto 5m`;
+      }catch(err){ console.error(err); nftStatus.textContent='Error al actualizar NFTs.'; }
     }
-
-    nftRefreshBtn?.addEventListener('click', nftRefresh);
 
     // ---------- creadores ----------
-    const creTbody = document.getElementById('creTbody');
-    const creStatus = document.getElementById('creStatus');
-    const creRefreshBtn = document.getElementById('creRefreshBtn');
-    const CREATORS_REFRESH_MS = 60 * 60 * 1000;
-    let creTimer = null;
+    const creTbody=document.getElementById('creTbody');
+    const creStatus=document.getElementById('creStatus');
+    const creRefreshBtn=document.getElementById('creRefreshBtn');
+    const CREATORS_REFRESH_MS=60*60*1000; let creTimer=null;
 
-    const sumFollowers = (f={}) => ['x','github','telegram','youtube','tiktok','instagram'].map(k => Number(f[k]||0)).reduce((a,b)=>a+b,0);
+    const sumFollowers=(f={})=>['x','github','telegram','youtube','tiktok','instagram'].map(k=>Number(f[k]||0)).reduce((a,b)=>a+b,0);
 
-    function handleFromXUrl(url){
-      if(!url) return null;
-      const m = String(url).match(/(?:x\.com|twitter\.com)\/([^\/?#]+)/i);
-      return m ? m[1].replace(/^@/,'') : null;
-    }
+    function handleFromXUrl(url){ if(!url) return null; const m=String(url).match(/(?:x\.com|twitter\.com)\/([^\/?#]+)/i); return m?m[1].replace(/^@/,''):null; }
 
     async function fetchXInfo(handles){
-      const list = [...new Set(handles)].filter(Boolean);
+      const list=[...new Set(handles)].filter(Boolean);
       if(!list.length) return {};
-      const url = `${XINFO_PROXY}?handles=${encodeURIComponent(list.join(','))}`;
-      const r = await fetch(url, { headers:{'accept':'application/json'} });
-      if(!r.ok) throw new Error('X proxy error ' + r.status);
-      return await r.json(); // { handleLower: {handle,name,followers,avatar,verified} }
+      const url=`${XINFO_PROXY}?handles=${encodeURIComponent(list.join(','))}`;
+      const r=await fetch(url,{headers:{'accept':'application/json'}});
+      if(!r.ok) throw new Error('X proxy error '+r.status);
+      return await r.json();
     }
 
     async function fetchCreatorsAll(list){
-      const handles = list.map(c=>handleFromXUrl(c.x)).filter(Boolean);
-      let info = {};
-      try{ info = await fetchXInfo(handles); }catch(e){ console.warn(e); }
+      const handles=list.map(c=>handleFromXUrl(c.x)).filter(Boolean);
+      let info={}; try{ info=await fetchXInfo(handles); }catch(e){ console.warn(e); }
       return list.map(c=>{
-        const h = handleFromXUrl(c.x);
-        const key = h ? h.toLowerCase() : null;
-        const xi = key ? info[key] : null;
-        return {
-          name: c.name || xi?.name || h || '—',
-          x: c.x || (h ? `https://x.com/${h}` : null),
-          avatar: c.avatar || xi?.avatar || null,
-          roles: c.roles||[],
-          followers: { x: toNum(xi?.followers) ?? toNum(c.followers?.x) ?? 0 },
-          bio: c.bio || '',
-          github: c.github||null,
-          telegram: c.telegram||null,
-          youtube: c.youtube||null,
-          tiktok: c.tiktok||null,
-          instagram: c.instagram||null
-        };
+        const h=handleFromXUrl(c.x); const key=h?h.toLowerCase():null; const xi=key?info[key]:null;
+        return { name:c.name||xi?.name||h||'—', x:c.x||(h?`https://x.com/${h}`:null), avatar:c.avatar||xi?.avatar||null, roles:c.roles||[],
+                 followers:{x:toNum(xi?.followers)??toNum(c.followers?.x)??0}, bio:c.bio||'', github:c.github||null, telegram:c.telegram||null,
+                 youtube:c.youtube||null, tiktok:c.tiktok||null, instagram:c.instagram||null };
       });
     }
 
     async function loadCreators(){
-      try{
-        const r = await fetch('./creators.json?ts='+Date.now(), {cache:'no-store'});
-        if(!r.ok) throw new Error('No creators.json');
-        const arr = await r.json();
-        return Array.isArray(arr) ? arr : [];
-      }catch(e){ console.warn('Sin creators.json', e); return []; }
+      try{ const r=await fetch('./creators.json?ts='+Date.now(),{cache:'no-store'}); if(!r.ok) throw new Error('No creators.json'); const arr=await r.json(); return Array.isArray(arr)?arr:[]; }
+      catch(e){ console.warn('Sin creators.json',e); return []; }
     }
 
     function renderCreators(rows){
-      creTbody.innerHTML = '';
+      creTbody.innerHTML='';
       rows.forEach((c,i)=>{
-        const total = sumFollowers(c.followers);
-        const tr = document.createElement('tr');
-        tr.className = 'group cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/40 leading-tight';
-        tr.innerHTML = `
+        const total=sumFollowers(c.followers);
+        const tr=document.createElement('tr');
+        tr.className='group cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/40 leading-tight';
+        tr.innerHTML=`
           <td class="w-6 px-2 py-2 sm:px-4 sm:py-3 text-gray-500 dark:text-gray-400">${i+1}</td>
           <td class="px-2 py-2 sm:px-4 sm:py-3">
             <div class="flex items-center gap-2 min-w-0">
-              ${c.avatar ? `<img src="${c.avatar}" class="w-6 h-6 rounded-full"/>` : ''}
+              ${c.avatar?`<img src="${c.avatar}" class="w-6 h-6 rounded-full"/>`:''}
               <span class="font-semibold truncate">${c.name}</span>
-              ${c.x ? `<a class="inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200 dark:hover:bg-gray-700" target="_blank" rel="noopener" href="${c.x}" title="Perfil en X">
+              ${c.x?`<a class="inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200 dark:hover:bg-gray-700" target="_blank" rel="noopener" href="${c.x}" title="Perfil en X">
                 <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="currentColor" aria-hidden="true"><path d="M18.244 3.515h3.167l-6.92 7.91 8.11 9.06H19.21l-5.66-6.328-6.465 6.328H3.917l7.405-7.245-7.87-8.726h4.04l5.157 5.723 5.595-5.723Zm-1.112 16.01h1.755L7.94 5.864H6.06l11.072 13.662Z"></path></svg>
-              </a>` : ''}
+              </a>`:''}
             </div>
           </td>
-          <td class="w-20 sm:w-24 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">${fmtNum(total || c.followers?.x || 0,0)}</td>
-          <td class="w-24 sm:w-28 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">${(c.roles||[]).join(', ') || '—'}</td>`;
+          <td class="w-20 sm:w-24 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">${fmtNum(total||c.followers?.x||0,0)}</td>
+          <td class="w-24 sm:w-28 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">${(c.roles||[]).join(', ')||'—'}</td>`;
         creTbody.appendChild(tr);
 
-        const det = document.createElement('tr');
-        det.className = 'details hidden bg-white/70 dark:bg-gray-800/70';
-        det.innerHTML = `
+        const det=document.createElement('tr');
+        det.className='details hidden bg-white/70 dark:bg-gray-800/70';
+        det.innerHTML=`
           <td colspan="4" class="px-4 py-3">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs text-gray-700 dark:text-gray-300">
-              <div class="md:col-span-3">${c.bio ? c.bio : ''}</div>
-              <div><span class="font-medium">Seguidores totales:</span> ${fmtNum(total || c.followers?.x || 0,0)}</div>
-              <div><span class="font-medium">Roles:</span> ${(c.roles||[]).join(', ') || '—'}</div>
+              <div class="md:col-span-3">${c.bio?c.bio:''}</div>
+              <div><span class="font-medium">Seguidores totales:</span> ${fmtNum(total||c.followers?.x||0,0)}</div>
+              <div><span class="font-medium">Roles:</span> ${(c.roles||[]).join(', ')||'—'}</div>
               <div class="flex gap-2 flex-wrap">
-                ${c.x ? `<a class="border rounded px-3 py-1 dark:border-gray-600" target="_blank" rel="noopener" href="${c.x}">X/Twitter</a>` : ''}
-                ${c.github ? `<a class="border rounded px-3 py-1 dark:border-gray-600" target="_blank" rel="noopener" href="${c.github}">GitHub</a>` : ''}
-                ${c.telegram ? `<a class="border rounded px-3 py-1 dark:border-gray-600" target="_blank" rel="noopener" href="${c.telegram}">Telegram</a>` : ''}
-                ${c.youtube ? `<a class="border rounded px-3 py-1 dark:border-gray-600" target="_blank" rel="noopener" href="${c.youtube}">YouTube</a>` : ''}
-                ${c.tiktok ? `<a class="border rounded px-3 py-1 dark:border-gray-600" target="_blank" rel="noopener" href="${c.tiktok}">TikTok</a>` : ''}
-                ${c.instagram ? `<a class="border rounded px-3 py-1 dark:border-gray-600" target="_blank" rel="noopener" href="${c.instagram}">Instagram</a>` : ''}
+                ${c.x?`<a class="border rounded px-3 py-1 dark:border-gray-600" target="_blank" rel="noopener" href="${c.x}">X/Twitter</a>`:''}
+                ${c.github?`<a class="border rounded px-3 py-1 dark:border-gray-600" target="_blank" rel="noopener" href="${c.github}">GitHub</a>`:''}
+                ${c.telegram?`<a class="border rounded px-3 py-1 dark:border-gray-600" target="_blank" rel="noopener" href="${c.telegram}">Telegram</a>`:''}
+                ${c.youtube?`<a class="border rounded px-3 py-1 dark:border-gray-600" target="_blank" rel="noopener" href="${c.youtube}">YouTube</a>`:''}
+                ${c.tiktok?`<a class="border rounded px-3 py-1 dark:border-gray-600" target="_blank" rel="noopener" href="${c.tiktok}">TikTok</a>`:''}
+                ${c.instagram?`<a class="border rounded px-3 py-1 dark:border-gray-600" target="_blank" rel="noopener" href="${c.instagram}">Instagram</a>`:''}
               </div>
             </div>
           </td>`;
         creTbody.appendChild(det);
 
-        tr.addEventListener('click', (e)=>{ if(e.target.closest('a')) return; det.classList.toggle('hidden'); });
+        tr.addEventListener('click',(e)=>{ if(e.target.closest('a')) return; det.classList.toggle('hidden'); });
       });
     }
 
     async function creRefresh(){
       try{
-        creStatus.textContent = 'Cargando…';
-        const base = await loadCreators();
+        creStatus.textContent='Cargando…';
+        const base=await loadCreators();
         if(!base.length){ creTbody.innerHTML=''; creStatus.textContent='Agrega perfiles a creators.json'; return; }
-        const rowsRaw = await fetchCreatorsAll(base);
-        const rows = [...rowsRaw].sort((a,b)=> (b.followers?.x||0)-(a.followers?.x||0));
+        const rowsRaw=await fetchCreatorsAll(base);
+        const rows=[...rowsRaw].sort((a,b)=>(b.followers?.x||0)-(a.followers?.x||0));
         renderCreators(rows);
-        creStatus.textContent = `Actualizado: ${new Date().toLocaleTimeString()} · Auto 1h`;
+        creStatus.textContent=`Actualizado: ${new Date().toLocaleTimeString()} · Auto 1h`;
       }catch(err){ console.error(err); creStatus.textContent='Error al actualizar creadores.'; }
     }
 
-    creRefreshBtn?.addEventListener('click', creRefresh);
-
     // ---------- tabs ----------
-    const tabCoins = document.getElementById('tabCoins');
-    const tabNfts = document.getElementById('tabNfts');
-    const tabCreators = document.getElementById('tabCreators');
-    const coinsSection = document.getElementById('coins-section');
-    const nftsSection = document.getElementById('nfts-section');
-    const creatorsSection = document.getElementById('creators-section');
+    const tabCoins=document.getElementById('tabCoins');
+    const tabNfts=document.getElementById('tabNfts');
+    const tabCreators=document.getElementById('tabCreators');
+    const coinsSection=document.getElementById('coins-section');
+    const nftsSection=document.getElementById('nfts-section');
+    const creatorsSection=document.getElementById('creators-section');
 
     function setActiveTab(tab){
-      coinsSection.classList.toggle('hidden', tab !== 'coins');
-      nftsSection.classList.toggle('hidden', tab !== 'nfts');
-      creatorsSection.classList.toggle('hidden', tab !== 'creators');
-      const on  = ['bg-black','text-white'];
-      const off = ['bg-gray-200','dark:bg-gray-700','dark:text-gray-100'];
-      [tabCoins, tabNfts, tabCreators].forEach(b => b?.classList.remove(...on, ...off));
-      if (tab === 'coins')   { tabCoins?.classList.add(...on);    tabNfts?.classList.add(...off);    tabCreators?.classList.add(...off); }
-      if (tab === 'nfts')    { tabNfts?.classList.add(...on);     tabCoins?.classList.add(...off);   tabCreators?.classList.add(...off); }
-      if (tab === 'creators'){ tabCreators?.classList.add(...on);  tabCoins?.classList.add(...off);   tabNfts?.classList.add(...off); }
+      coinsSection.classList.toggle('hidden',tab!=='coins');
+      nftsSection.classList.toggle('hidden',tab!=='nfts');
+      creatorsSection.classList.toggle('hidden',tab!=='creators');
+      const on=['bg-black','text-white']; const off=['bg-gray-200','dark:bg-gray-700','dark:text-gray-100'];
+      [tabCoins,tabNfts,tabCreators].forEach(b=>b?.classList.remove(...on,...off));
+      if(tab==='coins'){ tabCoins?.classList.add(...on); tabNfts?.classList.add(...off); tabCreators?.classList.add(...off); }
+      if(tab==='nfts'){ tabNfts?.classList.add(...on); tabCoins?.classList.add(...off); tabCreators?.classList.add(...off); }
+      if(tab==='creators'){ tabCreators?.classList.add(...on); tabCoins?.classList.add(...off); tabNfts?.classList.add(...off); }
 
       clearInterval(nftTimer); clearInterval(creTimer);
-      if (tab === 'nfts') {
-        if (!window.__nftInit) { nftRefresh(); window.__nftInit = true; }
-        nftTimer = setInterval(nftRefresh, NFT_REFRESH_MS);
-      }
-      if (tab === 'creators') {
-        if (!window.__creInit) { creRefresh(); window.__creInit = true; }
-        creTimer = setInterval(creRefresh, CREATORS_REFRESH_MS);
-      }
+      if(tab==='nfts'){ if(!window.__nftInit){ nftRefresh(); window.__nftInit=true; } nftTimer=setInterval(nftRefresh,NFT_REFRESH_MS); }
+      if(tab==='creators'){ if(!window.__creInit){ creRefresh(); window.__creInit=true; } creTimer=setInterval(creRefresh,60*60*1000); }
     }
 
-    tabCoins?.addEventListener('click',   ()=>setActiveTab('coins'));
-    tabNfts?.addEventListener('click',    ()=>setActiveTab('nfts'));
+    tabCoins?.addEventListener('click',()=>setActiveTab('coins'));
+    tabNfts?.addEventListener('click',()=>setActiveTab('nfts'));
     tabCreators?.addEventListener('click',()=>setActiveTab('creators'));
 
     // ---------- Gestos & copiar (coins) ----------
-    async function copyTextSafe(text) {
-      try { await navigator.clipboard.writeText(text); return true; }
-      catch (e) {
-        try { const ta=document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.focus(); ta.select(); const ok=document.execCommand('copy'); document.body.removeChild(ta); return ok; }
-        catch { return false; }
-      }
+    async function copyTextSafe(text){
+      try{ await navigator.clipboard.writeText(text); return true; }
+      catch(e){ try{ const ta=document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.focus(); ta.select(); const ok=document.execCommand('copy'); document.body.removeChild(ta); return ok; } catch { return false; } }
     }
-    let lpTimer = null; let suppressClickUntil = 0;
-    function showToastNear(el, text){
-      try{
-        const r = el.getBoundingClientRect();
-        const tip = document.createElement('div');
-        tip.textContent = text;
-        tip.style.position='fixed'; tip.style.left=(r.left+window.scrollX)+'px'; tip.style.top=(r.bottom+window.scrollY+6)+'px';
-        tip.className='z-50 bg-black text-white text-[10px] px-2 py-0.5 rounded shadow';
-        document.body.appendChild(tip); setTimeout(()=>tip.remove(), 900);
-      }catch(_){}
+    let lpTimer=null; let suppressClickUntil=0;
+    function showToastNear(el,text){
+      try{ const r=el.getBoundingClientRect(); const tip=document.createElement('div'); tip.textContent=text; tip.style.position='fixed'; tip.style.left=(r.left+window.scrollX)+'px'; tip.style.top=(r.bottom+window.scrollY+6)+'px'; tip.className='z-50 bg-black text-white text-[10px] px-2 py-0.5 rounded shadow'; document.body.appendChild(tip); setTimeout(()=>tip.remove(),900);}catch(_){}
     }
     function lpStart(e){
-      const t = e.target.closest('.lp-copy'); if(!t) return;
+      const t=e.target.closest('.lp-copy'); if(!t) return;
       if(lpTimer) clearTimeout(lpTimer);
-      lpTimer = setTimeout(async ()=>{
-        lpTimer=null; const text=t.getAttribute('data-copy')||''; if(!text) return;
-        const ok = await copyTextSafe(text); showToastNear(t, ok? 'Copiado' : 'No permitido');
-        suppressClickUntil = Date.now()+400;
-      }, 550);
+      lpTimer=setTimeout(async()=>{ lpTimer=null; const text=t.getAttribute('data-copy')||''; if(!text) return; const ok=await copyTextSafe(text); showToastNear(t,ok?'Copiado':'No permitido'); suppressClickUntil=Date.now()+400; },550);
     }
     function lpEnd(){ if(lpTimer){ clearTimeout(lpTimer); lpTimer=null; } }
-    tbody.addEventListener('touchstart', lpStart, {passive:true});
-    tbody.addEventListener('mousedown', lpStart);
-    ['touchend','touchcancel','mouseup','mouseleave'].forEach(ev=>tbody.addEventListener(ev, lpEnd));
+    tbody.addEventListener('touchstart',lpStart,{passive:true});
+    tbody.addEventListener('mousedown',lpStart);
+    ['touchend','touchcancel','mouseup','mouseleave'].forEach(ev=>tbody.addEventListener(ev,lpEnd));
 
-    // toggle global de detalles para coins
-    tbody.addEventListener('click', async (e) => {
-      const copyBtn = e.target.closest('.copy');
-      if (copyBtn) {
-        const text = copyBtn.getAttribute('data-copy') || ''; let ok = false;
-        if (text) ok = await copyTextSafe(text);
-        if (!ok && window.top !== window.self && text) { try { window.prompt('Copiar CA (selecciona y copia):', text); ok = true; } catch(_) {} }
-        const tip = copyBtn.querySelector('.tooltip');
-        if (tip) { tip.textContent = ok ? 'Copiado' : 'No permitido'; tip.classList.remove('opacity-0'); tip.classList.add('opacity-100'); setTimeout(()=> { tip.classList.add('opacity-0'); tip.classList.remove('opacity-100'); tip.textContent = 'Copiado'; }, 1200); }
+    tbody.addEventListener('click',async(e)=>{
+      const copyBtn=e.target.closest('.copy');
+      if(copyBtn){
+        const text=copyBtn.getAttribute('data-copy')||''; let ok=false;
+        if(text) ok=await copyTextSafe(text);
+        if(!ok&&window.top!==window.self&&text){ try{ window.prompt('Copiar CA (selecciona y copia):',text); ok=true; }catch{} }
+        const tip=copyBtn.querySelector('.tooltip'); if(tip){ tip.textContent=ok?'Copiado':'No permitido'; tip.classList.remove('opacity-0'); tip.classList.add('opacity-100'); setTimeout(()=>{ tip.classList.add('opacity-0'); tip.classList.remove('opacity-100'); tip.textContent='Copiado'; },1200); }
         e.stopPropagation(); return;
       }
-      if (e.target.closest('a')) return;
-      if (Date.now() < suppressClickUntil) return;
-      const row = e.target.closest('tr'); if (!row) return;
-      const details = row.nextElementSibling; if (details && details.classList.contains('details')) details.classList.toggle('hidden');
+      if(e.target.closest('a')) return;
+      if(Date.now()<suppressClickUntil) return;
+      const row=e.target.closest('tr'); if(!row) return;
+      const details=row.nextElementSibling; if(details&&details.classList.contains('details')) details.classList.toggle('hidden');
     });
 
-    // init
     setActiveTab('coins');
 
-    // tests rápidos
-    (function runTests(){ try {
-      console.assert(fmtUsdSmart(1.2345) === '$1.23','fmtUsdSmart');
-      console.assert(lamportsToSOL(1e9) === 1,'lamportsToSOL');
-    } catch(e){ console.warn('Tests warning:', e); } })();
-
-    // 3) Script del botón de tema (persistente)
-    (function () {
-      const btn = document.getElementById('themeToggle');
-      if (!btn) return;
-      const setTheme = (theme) => {
-        document.documentElement.classList.toggle('dark', theme === 'dark');
-        localStorage.setItem('theme', theme);
-        btn.textContent = (theme === 'dark') ? '☀️' : '🌙';
-      };
-      setTheme(document.documentElement.classList.contains('dark') ? 'dark' : 'light');
-      btn.addEventListener('click', () => {
-        const next = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
-        setTheme(next);
-      });
+    // Botón de tema (persistente)
+    (function(){
+      const btn=document.getElementById('themeToggle'); if(!btn) return;
+      const setTheme=(theme)=>{ document.documentElement.classList.toggle('dark',theme==='dark'); localStorage.setItem('theme',theme); btn.textContent=(theme==='dark')?'☀️':'🌙'; };
+      setTheme(document.documentElement.classList.contains('dark')?'dark':'light');
+      btn.addEventListener('click',()=>{ const next=document.documentElement.classList.contains('dark')?'light':'dark'; setTheme(next); });
     })();
   </script>
 
   <!-- 🌐 Cloudflare Web Analytics -->
-  <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "c7335ec6ec0c4d8ba06040d145c5166f"}'></script>
-  <!-- End Cloudflare Web Analytics -->
+  <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"c7335ec6ec0c4d8ba06040d145c5166f"}'></script>
 </body>
 </html>
 
