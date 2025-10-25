@@ -38,7 +38,7 @@
         <button id="tabCreators" class="px-3 py-1.5 rounded-lg bg-gray-200 dark:bg-gray-700 dark:text-gray-100">Creadores</button>
       </div>
 
-      <!-- Grupo unido: Tema + MC + Latam SZN + Solicitar listado -->
+      <!-- Grupo unido: Tema + MC + VOL 24h + Latam SZN + Solicitar listado -->
       <div class="flex items-center gap-2">
         <div class="hidden sm:inline-flex items-stretch rounded-lg overflow-hidden border border-gray-300 dark:border-gray-700">
           <!-- Tema -->
@@ -56,6 +56,16 @@
                title="Suma de Market Cap de los tokens listados (solo MC)">
             <span class="font-semibold">MC</span>
             <span id="totalMcValue" class="tabular-nums">$0</span>
+          </div>
+
+          <!-- VOL 24h total -->
+          <div id="totalVol"
+               class="hidden px-3 py-1.5 text-sm bg-white text-gray-800 border-l border-gray-300
+                      dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700
+                      flex items-center gap-2"
+               title="Volumen 24h agregado de los tokens listados">
+            <span class="font-semibold">VOL 24h</span>
+            <span id="totalVolValue" class="tabular-nums">$0</span>
           </div>
 
           <!-- LATAM SZN -->
@@ -195,6 +205,24 @@
       else{ totalMcBox.classList.add('hidden'); }
     }
 
+    // --- Total Vol 24h ---
+    const totalVolBox=document.getElementById('totalVol');
+    const totalVolValue=document.getElementById('totalVolValue');
+    function updateTotalVol(pairs){
+      if(!totalVolBox||!totalVolValue) return;
+      const sum=pairs.reduce((acc,p)=>{
+        const v=(p && p.volume && typeof p.volume.h24==='number') ? p.volume.h24 : 0;
+        return acc+v;
+      },0);
+      if(sum>0){
+        totalVolValue.textContent=fmtUsdCompact(sum);
+        totalVolBox.title=`Volumen 24h: ${fmtUsd(sum)}`;
+        totalVolBox.classList.remove('hidden');
+      }else{
+        totalVolBox.classList.add('hidden');
+      }
+    }
+
     // ---------- Fear & Greed helpers ----------
     const fgChip=document.getElementById('fgChip');
     const fgValueEl=document.getElementById('fgValue');
@@ -316,7 +344,6 @@
     const tbody=document.getElementById('tbody');
     const refreshBtn=document.getElementById('refreshBtn');
     const statusEl=document.getElementById('status');
-    const REFRESH_MS=60000;
 
     const lamportsToSOL=(x)=>(typeof x==='number'?x/1e9:null);
     const fmtSol=(n)=>n==null?'—':`◎${(Math.abs(n)>=1?n.toFixed(2):n.toFixed(3))}`;
@@ -428,7 +455,7 @@
           <td class="w-16 sm:w-20 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap ${chgClass}">${chg!=null?fmtNum(chg,2)+'%':'—'}</td>
           <td class="w-24 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">
             <span class="md:hidden">${cap!=null?fmtUsdCompact(cap):'—'}</span>
-            <span class="hidden md:inline">${cap!=null?fmtUsd(cap):'—'} <span class="ml-1 text-[10px] px-1 py-0.5 rounded bg-gray-100 dark:bg-gray-700 border dark:border-gray-600">${badge}</span></span>
+            <span class="hidden md:inline">${cap!=null?fmtUsd(cap):'—'} <span class="ml-1 text:[10px] px-1 py-0.5 rounded bg-gray-100 dark:bg-gray-700 border dark:border-gray-600">${badge}</span></span>
           </td>`;
         tbody.appendChild(tr);
 
@@ -440,7 +467,7 @@
               <div class="md:col-span-4 flex items-center gap-2 text-sm">
                 ${t.imageUrl?`<img src="${t.imageUrl}" class="w-5 h-5 rounded-full"/>`:''}
                 <span class="font-semibold">${t.name||'—'}</span>
-                <span class="text-xs text-gray-500 dark:text-gray-400 uppercase">${t.symbol}</span>
+                <span class="text-xs text-gray-5 00 dark:text-gray-400 uppercase">${t.symbol}</span>
                 <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-700">${t.chainId}</span>
               </div>
               <div class="md:col-span-4 flex flex-wrap items-center gap-2">
@@ -473,7 +500,8 @@
         const pairs=await fetchAll(list);
         render(pairs);
         updateTotalMc(pairs);
-        updateFearIndex(pairs); // usa cache 12h
+        updateTotalVol(pairs);            // NUEVO: Volumen total
+        updateFearIndex(pairs);           // usa cache 12h
         statusEl.textContent=`Actualizado: ${new Date().toLocaleTimeString()} · Auto 60s`;
       }catch(err){
         console.error(err);
@@ -778,7 +806,6 @@
   <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"c7335ec6ec0c4d8ba06040d145c5166f"}'></script>
 </body>
 </html>
-
 
 
 
