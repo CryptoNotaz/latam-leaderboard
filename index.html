@@ -38,11 +38,9 @@
         <button id="tabCreators" class="px-3 py-1.5 rounded-lg bg-gray-200 dark:bg-gray-700 dark:text-gray-100">Creadores</button>
       </div>
 
-      <!-- Grupo unido: Tema + MC + Latam SZN -->
+      <!-- Grupo unido: Tema + MC + Latam SZN + Solicitar listado -->
       <div class="flex items-center gap-2">
-        <!-- Segmented group -->
-        <div
-          class="hidden sm:inline-flex items-stretch rounded-lg overflow-hidden border border-gray-300 dark:border-gray-700">
+        <div class="hidden sm:inline-flex items-stretch rounded-lg overflow-hidden border border-gray-300 dark:border-gray-700">
           <!-- Tema -->
           <button id="themeToggle"
             class="px-3 py-1.5 text-sm bg-white text-gray-800 hover:bg-gray-100
@@ -60,44 +58,39 @@
             <span id="totalMcValue" class="tabular-nums">$0</span>
           </div>
 
-          <!-- LATAM SZN (Fear/Greed local) -->
+          <!-- LATAM SZN -->
           <div id="fgChip"
                class="hidden px-3 py-1.5 text-sm bg-white text-gray-800 border-l border-gray-300 select-none
                       dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700
                       flex items-center gap-2"
                title="Índice Latam SZN">
-            <!-- Mini gauge -->
             <svg id="fgGauge" viewBox="0 0 80 44" width="56" height="28" class="shrink-0">
               <defs>
                 <linearGradient id="fgGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%"  stop-color="#ef4444"/><!-- rojo -->
-                  <stop offset="50%" stop-color="#f59e0b"/><!-- amarillo -->
-                  <stop offset="100%" stop-color="#22c55e"/><!-- verde -->
+                  <stop offset="0%"  stop-color="#ef4444"/>
+                  <stop offset="50%" stop-color="#f59e0b"/>
+                  <stop offset="100%" stop-color="#22c55e"/>
                 </linearGradient>
               </defs>
               <!-- arco -->
               <path d="M6 40 A34 34 0 0 1 74 40"
                     stroke="url(#fgGrad)" stroke-width="8" fill="none" stroke-linecap="round" opacity="0.9"/>
-              <!-- marcador -->
-              <circle id="fgMarker" cx="6" cy="40" r="5" fill="#ffffff"
-                      stroke="currentColor" stroke-width="2"/>
+              <!-- marcador (más grande para que se note) -->
+              <circle id="fgMarker" cx="6" cy="40" r="6" fill="#ffffff" stroke="currentColor" stroke-width="2"/>
             </svg>
             <div class="flex flex-col leading-none">
               <span class="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">Latam SZN</span>
               <span id="fgValue" class="font-semibold tabular-nums">--</span>
             </div>
           </div>
-        </div>
 
-        <!-- Botón: Solicitar listado (separado del grupo) -->
-        <a
-          href="https://forms.gle/ceKKLWemXwLpcXUK8"
-          target="_blank" rel="noopener"
-          class="px-3 py-1.5 rounded-lg text-sm font-medium
-                 bg-indigo-600 text-white hover:bg-indigo-700
-                 dark:bg-indigo-500 dark:hover:bg-indigo-600">
-          Solicitar listado
-        </a>
+          <!-- Solicitar listado (segmento del mismo grupo) -->
+          <a href="https://forms.gle/ceKKLWemXwLpcXUK8" target="_blank" rel="noopener"
+             class="px-3 py-1.5 text-sm bg-white text-indigo-600 font-medium border-l border-gray-300 hover:bg-gray-100
+                    dark:bg-gray-800 dark:text-indigo-400 dark:border-gray-700 dark:hover:bg-gray-700">
+            Solicitar listado
+          </a>
+        </div>
       </div>
     </nav>
 
@@ -207,6 +200,8 @@
     const fgValueEl=document.getElementById('fgValue');
     const fgMarker=document.getElementById('fgMarker');
     const FG_EMA_KEY='latam_fgi_ema';
+    const FG_TS_KEY='latam_fgi_ts';
+    const FG_CACHE_MS=12*60*60*1000; // 12 horas
     const FG_ALPHA=0.30;
 
     const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
@@ -223,8 +218,43 @@
       return {label:'Extreme Greed',cls:'text-emerald-500'};
     }
 
+    function renderFg(shown, extras){
+      const bucket=bucketForScore(shown);
+      fgValueEl.textContent=shown;
+      fgValueEl.className='font-semibold tabular-nums '+bucket.cls;
+
+      // mueve la aguja (centro 40,40 radio 34)
+      const r=34, cx=40, cy=40;
+      const rad=Math.PI*(1 - shown/100);
+      fgMarker.setAttribute('cx', String(cx + r*Math.cos(rad)));
+      fgMarker.setAttribute('cy', String(cy + r*Math.sin(rad)));
+
+      fgChip.title = extras
+        ? [
+            `Latam SZN: ${shown} (${bucket.label})`,
+            `Breadth: ${extras.breadth}`,
+            `Momentum: ${extras.momentum}`,
+            `Liquidez: ${extras.liq}`,
+            `Volatilidad: ${extras.vol}`
+          ].join(' · ')
+        : `Latam SZN: ${shown} (${bucket.label})`;
+
+      fgChip.classList.remove('hidden');
+    }
+
     function updateFearIndex(pairs){
       try{
+        const now = Date.now();
+        const lastTs = Number(localStorage.getItem(FG_TS_KEY)) || 0;
+        const cached = Number(localStorage.getItem(FG_EMA_KEY));
+
+        // Si no han pasado 12h y hay cache, solo renderiza desde cache
+        if (now - lastTs < FG_CACHE_MS && Number.isFinite(cached)) {
+          renderFg(Math.round(cached));
+          return;
+        }
+
+        // Recalcular
         const items=pairs.map(p=>{
           const ret=toNum(p?.priceChange?.h24);
           const mc =(typeof p?.marketCap==='number')?p.marketCap:((typeof p?.fdv==='number')?p.fdv:0);
@@ -254,28 +284,17 @@
 
         const prev=Number(localStorage.getItem(FG_EMA_KEY));
         const ema=Number.isFinite(prev)?(prev+FG_ALPHA*(score-prev)):score;
+
         localStorage.setItem(FG_EMA_KEY,String(ema));
+        localStorage.setItem(FG_TS_KEY,String(now));
+
         const shown=Math.round(ema);
-
-        const bucket=bucketForScore(shown);
-        fgValueEl.textContent=shown;
-        fgValueEl.className='font-semibold tabular-nums '+bucket.cls;
-
-        // Mover marcador sobre el mismo arco (centro 40,40 radio 34; 0->izq, 100->der)
-        const r=34, cx=40, cy=40;
-        const rad=Math.PI*(1 - shown/100);
-        fgMarker.setAttribute('cx', String(cx + r*Math.cos(rad)));
-        fgMarker.setAttribute('cy', String(cy + r*Math.sin(rad)));
-
-        fgChip.title=[
-          `Latam SZN: ${shown} (${bucket.label})`,
-          `Breadth: ${breadthScore.toFixed(1)}`,
-          `Momentum: ${momentumScore.toFixed(1)}`,
-          `Liquidez: ${liqScore.toFixed(1)}`,
-          `Volatilidad: ${volScore.toFixed(1)}`
-        ].join(' · ');
-
-        fgChip.classList.remove('hidden');
+        renderFg(shown, {
+          breadth: breadthScore.toFixed(1),
+          momentum: momentumScore.toFixed(1),
+          liq: liqScore.toFixed(1),
+          vol: volScore.toFixed(1)
+        });
       }catch(e){
         console.warn('FG index error', e);
         fgChip.classList.add('hidden');
@@ -454,7 +473,7 @@
         const pairs=await fetchAll(list);
         render(pairs);
         updateTotalMc(pairs);
-        updateFearIndex(pairs);
+        updateFearIndex(pairs); // usa cache 12h
         statusEl.textContent=`Actualizado: ${new Date().toLocaleTimeString()} · Auto 60s`;
       }catch(err){
         console.error(err);
@@ -759,6 +778,7 @@
   <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"c7335ec6ec0c4d8ba06040d145c5166f"}'></script>
 </body>
 </html>
+
 
 
 
