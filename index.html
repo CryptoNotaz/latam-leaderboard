@@ -29,161 +29,183 @@
       <h1 class="text-2xl sm:text-3xl font-bold">Latam Market Cap</h1>
     </header>
 
-    <!-- NAV -->
-    <nav class="mb-4 flex justify-center sm:justify-between items-center gap-2">
-      <!-- Tabs -->
-      <div class="flex gap-2">
-        <button id="tabCoins" class="px-3 py-1.5 rounded-lg bg-black text-white">Coins</button>
-        <button id="tabNfts" class="px-3 py-1.5 rounded-lg bg-gray-200 dark:bg-gray-700 dark:text-gray-100">NFTs</button>
-        <button id="tabCreators" class="px-3 py-1.5 rounded-lg bg-gray-200 dark:bg-gray-700 dark:text-gray-100">Creadores</button>
-      </div>
+    <!-- LAYOUT con sidebar fija -->
+    <div class="grid grid-cols-1 sm:grid-cols-[168px_1fr] gap-4">
+      <!-- SIDEBAR -->
+      <aside class="sm:sticky sm:top-4 sm:self-start bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-3">
+        <nav class="flex sm:flex-col gap-2">
+          <button id="tabCoins" class="px-3 py-2 rounded-lg bg-black text-white text-left">Coins</button>
+          <button id="tabNfts" class="px-3 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 dark:text-gray-100 text-left">NFTs</button>
+          <button id="tabCreators" class="px-3 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 dark:text-gray-100 text-left">Creadores</button>
+          <button id="tabTools" class="px-3 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 dark:text-gray-100 text-left">Herramientas</button>
+        </nav>
 
-      <!-- Grupo unido: Tema + MC + VOL 24h + Latam SZN + Solicitar listado -->
-      <div class="flex items-center gap-2">
-        <div class="hidden sm:inline-flex items-stretch rounded-lg overflow-hidden border border-gray-300 dark:border-gray-700">
-          <!-- Tema -->
+        <div class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+          <!-- Botón de tema (mismo id que antes para no romper lógica) -->
           <button id="themeToggle"
-            class="px-3 py-1.5 text-sm bg-white text-gray-800 hover:bg-gray-100
-                   dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700">
+            class="w-full px-3 py-2 text-sm rounded-lg bg-gray-100 text-gray-800 hover:bg-gray-200
+                   dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600">
             🌙
           </button>
+        </div>
+      </aside>
 
-          <!-- MC total -->
-          <div id="totalMc"
-               class="hidden px-3 py-1.5 text-sm bg-white text-gray-800 border-l border-gray-300
+      <!-- CONTENIDO -->
+      <main>
+        <!-- Grupo unido: MC + VOL 24h + Latam SZN + Solicitar listado (separado del tema, que va en sidebar) -->
+        <div class="mb-4 flex items-center justify-center sm:justify-between gap-2">
+          <div class="hidden sm:inline-flex items-stretch rounded-lg overflow-hidden border border-gray-300 dark:border-gray-700">
+            <!-- MC total -->
+            <div id="totalMc"
+                class="hidden px-3 py-1.5 text-sm bg-white text-gray-800
+                      dark:bg-gray-800 dark:text-gray-100
+                      flex items-center gap-2"
+                title="Suma de Market Cap de los tokens listados (solo MC)">
+              <span class="font-semibold">MC</span>
+              <span id="totalMcValue" class="tabular-nums">$0</span>
+            </div>
+
+            <!-- VOL 24h total -->
+            <div id="totalVol"
+                class="hidden px-3 py-1.5 text-sm bg-white text-gray-800 border-l border-gray-300
                       dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700
                       flex items-center gap-2"
-               title="Suma de Market Cap de los tokens listados (solo MC)">
-            <span class="font-semibold">MC</span>
-            <span id="totalMcValue" class="tabular-nums">$0</span>
+                title="Volumen 24h agregado de los tokens listados">
+              <span class="font-semibold">VOL 24h</span>
+              <span id="totalVolValue" class="tabular-nums">$0</span>
+            </div>
+
+            <!-- LATAM SZN -->
+            <div id="fgChip"
+                class="hidden px-3 py-1.5 text-sm bg-white text-gray-800 border-l border-gray-300 select-none
+                      dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700
+                      flex items-center gap-2"
+                title="Índice Latam SZN">
+              <svg id="fgGauge" viewBox="0 0 80 44" width="56" height="28" class="shrink-0">
+                <defs>
+                  <linearGradient id="fgGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%"  stop-color="#ef4444"/>
+                    <stop offset="50%" stop-color="#f59e0b"/>
+                    <stop offset="100%" stop-color="#22c55e"/>
+                  </linearGradient>
+                </defs>
+                <!-- arco -->
+                <path d="M6 40 A34 34 0 0 1 74 40"
+                      stroke="url(#fgGrad)" stroke-width="8" fill="none" stroke-linecap="round" opacity="0.9"/>
+                <!-- marcador -->
+                <circle id="fgMarker" cx="6" cy="40" r="6" fill="#ffffff" stroke="currentColor" stroke-width="2"/>
+              </svg>
+              <div class="flex flex-col leading-none">
+                <span class="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">Latam SZN</span>
+                <span id="fgValue" class="font-semibold tabular-nums">--</span>
+              </div>
+            </div>
+
+            <!-- Solicitar listado -->
+            <a href="https://forms.gle/ceKKLWemXwLpcXUK8" target="_blank" rel="noopener"
+              class="px-3 py-1.5 text-sm bg-white text-indigo-600 font-medium border-l border-gray-300 hover:bg-gray-100
+                    dark:bg-gray-800 dark:text-indigo-400 dark:border-gray-700 dark:hover:bg-gray-700">
+              Solicitar listado
+            </a>
           </div>
+        </div>
 
-          <!-- VOL 24h total -->
-          <div id="totalVol"
-               class="hidden px-3 py-1.5 text-sm bg-white text-gray-800 border-l border-gray-300
-                      dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700
-                      flex items-center gap-2"
-               title="Volumen 24h agregado de los tokens listados">
-            <span class="font-semibold">VOL 24h</span>
-            <span id="totalVolValue" class="tabular-nums">$0</span>
-          </div>
+        <!-- COINS -->
+        <section id="coins-section" class="grid gap-4 items-start">
+          <div>
+            <div class="flex items-center gap-3 mb-3 justify-center sm:justify-start">
+              <button id="refreshBtn" class="px-4 py-2 rounded-xl bg-black text-white font-medium shadow hover:opacity-90 active:opacity-80">Actualizar</button>
+              <span id="status" class="text-sm text-gray-600 dark:text-gray-400"></span>
+            </div>
 
-          <!-- LATAM SZN -->
-          <div id="fgChip"
-               class="hidden px-3 py-1.5 text-sm bg-white text-gray-800 border-l border-gray-300 select-none
-                      dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700
-                      flex items-center gap-2"
-               title="Índice Latam SZN">
-            <svg id="fgGauge" viewBox="0 0 80 44" width="56" height="28" class="shrink-0">
-              <defs>
-                <linearGradient id="fgGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%"  stop-color="#ef4444"/>
-                  <stop offset="50%" stop-color="#f59e0b"/>
-                  <stop offset="100%" stop-color="#22c55e"/>
-                </linearGradient>
-              </defs>
-              <!-- arco -->
-              <path d="M6 40 A34 34 0 0 1 74 40"
-                    stroke="url(#fgGrad)" stroke-width="8" fill="none" stroke-linecap="round" opacity="0.9"/>
-              <!-- marcador (más grande para que se note) -->
-              <circle id="fgMarker" cx="6" cy="40" r="6" fill="#ffffff" stroke="currentColor" stroke-width="2"/>
-            </svg>
-            <div class="flex flex-col leading-none">
-              <span class="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">Latam SZN</span>
-              <span id="fgValue" class="font-semibold tabular-nums">--</span>
+            <div class="overflow-x-auto bg-white dark:bg-gray-800 rounded-2xl shadow">
+              <table class="w-full table-auto text-xs sm:text-sm" id="table">
+                <thead class="bg-gray-100 dark:bg-gray-700 sticky top-0 z-10">
+                  <tr>
+                    <th class="w-6 px-2 py-2 sm:px-4 sm:py-3 text-left">#</th>
+                    <th class="px-2 py-2 sm:px-4 sm:py-3 text-left">Ticker</th>
+                    <th class="w-20 sm:w-28 px-2 py-2 sm:px-4 sm:py-3 text-left">Plataforma</th>
+                    <th class="w-24 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right">Precio</th>
+                    <th class="w-14 sm:w-20 px-2 py-2 sm:px-4 sm:py-3 text-right">24h</th>
+                    <th class="w-24 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right">Market Cap</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody"></tbody>
+              </table>
             </div>
           </div>
+        </section>
 
-          <!-- Solicitar listado (segmento del mismo grupo) -->
-          <a href="https://forms.gle/ceKKLWemXwLpcXUK8" target="_blank" rel="noopener"
-             class="px-3 py-1.5 text-sm bg-white text-indigo-600 font-medium border-l border-gray-300 hover:bg-gray-100
-                    dark:bg-gray-800 dark:text-indigo-400 dark:border-gray-700 dark:hover:bg-gray-700">
-            Solicitar listado
-          </a>
-        </div>
-      </div>
-    </nav>
+        <!-- NFTS -->
+        <section id="nfts-section" class="grid gap-4 items-start hidden">
+          <div>
+            <div class="flex items-center gap-3 mb-3 justify-center sm:justify-start">
+              <button id="nftRefreshBtn" class="px-4 py-2 rounded-xl bg-black text-white font-medium shadow hover:opacity-90 active:opacity-80">Actualizar</button>
+              <span id="nftStatus" class="text-sm text-gray-600 dark:text-gray-400"></span>
+            </div>
+            <div class="overflow-x-auto bg-white dark:bg-gray-800 rounded-2xl shadow">
+              <table class="w-full table-auto text-xs sm:text-sm">
+                <thead class="bg-gray-100 dark:bg-gray-700 sticky top-0 z-10">
+                  <tr>
+                    <th class="w-6 px-2 py-2 sm:px-4 sm:py-3 text-left">#</th>
+                    <th class="px-2 py-2 sm:px-4 sm:py-3 text-left">Colección</th>
+                    <th class="w-24 sm:w-28 px-2 py-2 sm:px-4 sm:py-3 text-right">Floor</th>
+                    <th class="w-20 sm:w-24 px-2 py-2 sm:px-4 sm:py-3 text-right">24h Vol</th>
+                    <th class="w-20 sm:w-24 px-2 py-2 sm:px-4 sm:py-3 text-right">Supply</th>
+                    <th class="w-24 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right">MC (floor)</th>
+                  </tr>
+                </thead>
+                <tbody id="nftTbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
 
-    <!-- COINS -->
-    <section id="coins-section" class="grid gap-4 items-start">
-      <div>
-        <div class="flex items-center gap-3 mb-3 justify-center sm:justify-start">
-          <button id="refreshBtn" class="px-4 py-2 rounded-xl bg-black text-white font-medium shadow hover:opacity-90 active:opacity-80">Actualizar</button>
-          <span id="status" class="text-sm text-gray-600 dark:text-gray-400"></span>
-        </div>
+        <!-- CREADORES -->
+        <section id="creators-section" class="grid gap-4 items-start hidden">
+          <div>
+            <div class="flex items-center gap-3 mb-3 justify-center sm:justify-start">
+              <button id="creRefreshBtn" class="px-4 py-2 rounded-xl bg-black text-white font-medium shadow hover:opacity-90 active:opacity-80">Actualizar</button>
+              <span id="creStatus" class="text-sm text-gray-600 dark:text-gray-400"></span>
+            </div>
+            <div class="overflow-x-auto bg-white dark:bg-gray-800 rounded-2xl shadow">
+              <table class="w-full table-auto text-xs sm:text-sm">
+                <thead class="bg-gray-100 dark:bg-gray-700 sticky top-0 z-10">
+                  <tr>
+                    <th class="w-6 px-2 py-2 sm:px-4 sm:py-3 text-left">#</th>
+                    <th class="px-2 py-2 sm:px-4 sm:py-3 text-left">Creador</th>
+                    <th class="w-20 sm:w-24 px-2 py-2 sm:px-4 sm:py-3 text-right">Seguidores</th>
+                    <th class="w-24 sm:w-28 px-2 py-2 sm:px-4 sm:py-3 text-right">Roles</th>
+                  </tr>
+                </thead>
+                <tbody id="creTbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
 
-        <div class="overflow-x-auto bg-white dark:bg-gray-800 rounded-2xl shadow">
-          <table class="w-full table-auto text-xs sm:text-sm" id="table">
-            <thead class="bg-gray-100 dark:bg-gray-700 sticky top-0 z-10">
-              <tr>
-                <th class="w-6 px-2 py-2 sm:px-4 sm:py-3 text-left">#</th>
-                <th class="px-2 py-2 sm:px-4 sm:py-3 text-left">Ticker</th>
-                <th class="w-20 sm:w-28 px-2 py-2 sm:px-4 sm:py-3 text-left">Plataforma</th>
-                <th class="w-24 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right">Precio</th>
-                <th class="w-14 sm:w-20 px-2 py-2 sm:px-4 sm:py-3 text-right">24h</th>
-                <th class="w-24 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right">Market Cap</th>
-              </tr>
-            </thead>
-            <tbody id="tbody"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
+        <!-- HERRAMIENTAS -->
+        <section id="tools-section" class="grid gap-4 items-start hidden">
+          <div>
+            <div class="flex items-center gap-3 mb-3 justify-center sm:justify-start">
+              <button id="toolsRefreshBtn" class="px-4 py-2 rounded-xl bg-black text-white font-medium shadow hover:opacity-90 active:opacity-80">Actualizar</button>
+              <span id="toolsStatus" class="text-sm text-gray-600 dark:text-gray-400"></span>
+            </div>
 
-    <!-- NFTS -->
-    <section id="nfts-section" class="grid gap-4 items-start hidden">
-      <div>
-        <div class="flex items-center gap-3 mb-3 justify-center sm:justify-start">
-          <button id="nftRefreshBtn" class="px-4 py-2 rounded-xl bg-black text-white font-medium shadow hover:opacity-90 active:opacity-80">Actualizar</button>
-          <span id="nftStatus" class="text-sm text-gray-600 dark:text-gray-400"></span>
-        </div>
-        <div class="overflow-x-auto bg-white dark:bg-gray-800 rounded-2xl shadow">
-          <table class="w-full table-auto text-xs sm:text-sm">
-            <thead class="bg-gray-100 dark:bg-gray-700 sticky top-0 z-10">
-              <tr>
-                <th class="w-6 px-2 py-2 sm:px-4 sm:py-3 text-left">#</th>
-                <th class="px-2 py-2 sm:px-4 sm:py-3 text-left">Colección</th>
-                <th class="w-24 sm:w-28 px-2 py-2 sm:px-4 sm:py-3 text-right">Floor</th>
-                <th class="w-20 sm:w-24 px-2 py-2 sm:px-4 sm:py-3 text-right">24h Vol</th>
-                <th class="w-20 sm:w-24 px-2 py-2 sm:px-4 sm:py-3 text-right">Supply</th>
-                <th class="w-24 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right">MC (floor)</th>
-              </tr>
-            </thead>
-            <tbody id="nftTbody"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
+            <div id="toolsList" class="grid gap-3 sm:grid-cols-2">
+              <!-- Cards dinámicas -->
+            </div>
+          </div>
+        </section>
 
-    <!-- CREADORES -->
-    <section id="creators-section" class="grid gap-4 items-start hidden">
-      <div>
-        <div class="flex items-center gap-3 mb-3 justify-center sm:justify-start">
-          <button id="creRefreshBtn" class="px-4 py-2 rounded-xl bg-black text-white font-medium shadow hover:opacity-90 active:opacity-80">Actualizar</button>
-          <span id="creStatus" class="text-sm text-gray-600 dark:text-gray-400"></span>
-        </div>
-        <div class="overflow-x-auto bg-white dark:bg-gray-800 rounded-2xl shadow">
-          <table class="w-full table-auto text-xs sm:text-sm">
-            <thead class="bg-gray-100 dark:bg-gray-700 sticky top-0 z-10">
-              <tr>
-                <th class="w-6 px-2 py-2 sm:px-4 sm:py-3 text-left">#</th>
-                <th class="px-2 py-2 sm:px-4 sm:py-3 text-left">Creador</th>
-                <th class="w-20 sm:w-24 px-2 py-2 sm:px-4 sm:py-3 text-right">Seguidores</th>
-                <th class="w-24 sm:w-28 px-2 py-2 sm:px-4 sm:py-3 text-right">Roles</th>
-              </tr>
-            </thead>
-            <tbody id="creTbody"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <footer class="mt-10 text-xs text-gray-500 dark:text-gray-400">
-      <div class="flex items-center gap-2 justify-center sm:justify-start">
-        <img src="./v1ps-logo.png" alt="V1PS" class="w-4 h-4 rounded">
-        <span>Powered by <a class="underline" href="https://x.com/V1PS_NFTs" target="_blank" rel="noopener">V1PS</a></span>
-      </div>
-    </footer>
+        <footer class="mt-10 text-xs text-gray-500 dark:text-gray-400">
+          <div class="flex items-center gap-2 justify-center sm:justify-start">
+            <img src="./v1ps-logo.png" alt="V1PS" class="w-4 h-4 rounded">
+            <span>Powered by <a class="underline" href="https://x.com/V1PS_NFTs" target="_blank" rel="noopener">V1PS</a></span>
+          </div>
+        </footer>
+      </main>
+    </div>
   </div>
 
   <script>
@@ -236,7 +258,7 @@
     const mapClip=(v,a,b,A,B)=>{if(a===b)return(A+B)/2;const t=clamp((v-a)/(b-a),0,1);return A+(B-A)*t;};
     const mean=arr=>arr.length?arr.reduce((a,b)=>a+b,0)/arr.length:0;
     const stdev=arr=>{if(arr.length<2)return 0;const m=mean(arr);const v=mean(arr.map(x=>(x-m)**2));return Math.sqrt(v);};
-    const percentile=(arr,p)=>{if(!arr.length)return 0;const a=[...arr].sort((x,y)=>x-y);const idx=clamp((p/100)*(a.length-1),0,a.length-1);const lo=Math.floor(idx),hi=Math.ceil(idx);if(lo===hi)return a[lo];const t=idx-lo;return a[lo]*(1-t)+a[hi]*t;};
+    const percentile=(arr,p)=>{if(!arr.length)return 0;const a=[...arr].sort((x,y)=>x-y);const idx=clamp((p/100)*(a.length-1),0,a.length-1);const lo=Math.floor(idx),hi=Math.ceil(idx);if(lo===hi)return a[lo];const t=idx-lo;return a[lo]*(1-t)+a[hi]*(1-t)+a[hi]*t;};
 
     function bucketForScore(s){
       if(s<=24) return {label:'Extreme Fear',cls:'text-red-500'};
@@ -516,7 +538,7 @@
       {"chain":"solana","address":"9RLoB3YZwk9sK78ZhmiSAj8CtPhssuJR1pVR326Vpump"}
     ];
 
-    document.getElementById('refreshBtn').addEventListener('click',refresh);
+    document.getElementById('refreshBtn')?.addEventListener('click',refresh);
     refresh(); setInterval(refresh,60000);
 
     // ---------- NFTs ----------
@@ -730,32 +752,97 @@
       }catch(err){ console.error(err); creStatus.textContent='Error al actualizar creadores.'; }
     }
 
+    // ---------- tools (NUEVO) ----------
+    const toolsListEl=document.getElementById('toolsList');
+    const toolsStatus=document.getElementById('toolsStatus');
+    const toolsRefreshBtn=document.getElementById('toolsRefreshBtn');
+    const TOOLS_REFRESH_MS=60*60*1000; let toolsTimer=null;
+
+    const TOOLS_FALLBACK=[
+      { name:'Bot de Trading Ejemplo', url:'https://t.me/exampleBot', desc:'Automatiza compras y ventas en Solana.', icon:'https://unavatar.io/telegram' },
+      { name:'LatamCap Tools', url:'https://latamcap.id', desc:'Analiza tokens, NFTs y métricas regionales.', icon:'./v1ps-logo.png' }
+    ];
+
+    async function loadTools(){
+      try{
+        const r=await fetch('./tools.json?ts='+Date.now(),{cache:'no-store'});
+        if(!r.ok) throw new Error('No tools.json');
+        const arr=await r.json();
+        if(!Array.isArray(arr)) throw new Error('tools.json debe ser un array');
+        return arr.map(t=>({
+          name: t.name || 'Herramienta',
+          url: t.url || '#',
+          desc: t.desc || t.description || '',
+          icon: t.icon || ''
+        }));
+      }catch(e){
+        console.warn('tools.json no disponible, usando fallback', e);
+        return TOOLS_FALLBACK;
+      }
+    }
+
+    function renderTools(items){
+      toolsListEl.innerHTML='';
+      items.forEach(it=>{
+        const a=document.createElement('a');
+        a.href=it.url; a.target='_blank'; a.rel='noopener';
+        a.className='p-4 bg-white dark:bg-gray-800 rounded-xl shadow hover:opacity-90 transition flex gap-3 items-start';
+        a.innerHTML=`
+          ${it.icon?`<img src="${it.icon}" class="w-8 h-8 rounded-md" alt="">`:''}
+          <div class="min-w-0">
+            <div class="font-semibold truncate">${it.name}</div>
+            ${it.desc?`<p class="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">${it.desc}</p>`:''}
+          </div>`;
+        toolsListEl.appendChild(a);
+      });
+    }
+
+    async function toolsRefresh(){
+      try{
+        toolsStatus.textContent='Cargando…';
+        const items=await loadTools();
+        renderTools(items);
+        toolsStatus.textContent=`Actualizado: ${new Date().toLocaleTimeString()} · Auto 1h`;
+      }catch(err){
+        console.error(err);
+        toolsStatus.textContent='Error al cargar herramientas.';
+      }
+    }
+    toolsRefreshBtn?.addEventListener('click', toolsRefresh);
+
     // ---------- tabs ----------
     const tabCoins=document.getElementById('tabCoins');
     const tabNfts=document.getElementById('tabNfts');
     const tabCreators=document.getElementById('tabCreators');
+    const tabTools=document.getElementById('tabTools');
     const coinsSection=document.getElementById('coins-section');
     const nftsSection=document.getElementById('nfts-section');
     const creatorsSection=document.getElementById('creators-section');
+    const toolsSection=document.getElementById('tools-section');
 
     function setActiveTab(tab){
       coinsSection.classList.toggle('hidden',tab!=='coins');
       nftsSection.classList.toggle('hidden',tab!=='nfts');
       creatorsSection.classList.toggle('hidden',tab!=='creators');
-      const on=['bg-black','text-white']; const off=['bg-gray-200','dark:bg-gray-700','dark:text-gray-100'];
-      [tabCoins,tabNfts,tabCreators].forEach(b=>b?.classList.remove(...on,...off));
-      if(tab==='coins'){ tabCoins?.classList.add(...on); tabNfts?.classList.add(...off); tabCreators?.classList.add(...off); }
-      if(tab==='nfts'){ tabNfts?.classList.add(...on); tabCoins?.classList.add(...off); tabCreators?.classList.add(...off); }
-      if(tab==='creators'){ tabCreators?.classList.add(...on); tabCoins?.classList.add(...off); tabNfts?.classList.add(...off); }
+      toolsSection.classList.toggle('hidden',tab!=='tools');
 
-      clearInterval(nftTimer); clearInterval(creTimer);
+      const on=['bg-black','text-white']; const off=['bg-gray-200','dark:bg-gray-700','dark:text-gray-100'];
+      [tabCoins,tabNfts,tabCreators,tabTools].forEach(b=>b?.classList.remove(...on,...off));
+      if(tab==='coins'){ tabCoins?.classList.add(...on); [tabNfts,tabCreators,tabTools].forEach(b=>b?.classList.add(...off)); }
+      if(tab==='nfts'){ tabNfts?.classList.add(...on); [tabCoins,tabCreators,tabTools].forEach(b=>b?.classList.add(...off)); }
+      if(tab==='creators'){ tabCreators?.classList.add(...on); [tabCoins,tabNfts,tabTools].forEach(b=>b?.classList.add(...off)); }
+      if(tab==='tools'){ tabTools?.classList.add(...on); [tabCoins,tabNfts,tabCreators].forEach(b=>b?.classList.add(...off)); }
+
+      clearInterval(nftTimer); clearInterval(creTimer); clearInterval(toolsTimer);
       if(tab==='nfts'){ if(!window.__nftInit){ nftRefresh(); window.__nftInit=true; } nftTimer=setInterval(nftRefresh,NFT_REFRESH_MS); }
-      if(tab==='creators'){ if(!window.__creInit){ creRefresh(); window.__creInit=true; } creTimer=setInterval(creRefresh,60*60*1000); }
+      if(tab==='creators'){ if(!window.__creInit){ creRefresh(); window.__creInit=true; } creTimer=setInterval(creRefresh,CREATORS_REFRESH_MS); }
+      if(tab==='tools'){ if(!window.__toolsInit){ toolsRefresh(); window.__toolsInit=true; } toolsTimer=setInterval(toolsRefresh,TOOLS_REFRESH_MS); }
     }
 
     tabCoins?.addEventListener('click',()=>setActiveTab('coins'));
     tabNfts?.addEventListener('click',()=>setActiveTab('nfts'));
     tabCreators?.addEventListener('click',()=>setActiveTab('creators'));
+    tabTools?.addEventListener('click',()=>setActiveTab('tools'));
 
     // ---------- Gestos & copiar (coins) ----------
     async function copyTextSafe(text){
@@ -806,6 +893,7 @@
   <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"c7335ec6ec0c4d8ba06040d145c5166f"}'></script>
 </body>
 </html>
+
 
 
 
