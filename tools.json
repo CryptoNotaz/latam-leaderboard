@@ -2,13 +2,20 @@
   {
     "name": "Bloom Bot (Solana)",
     "url": "https://t.me/BloomSolana_bot?start=ref_3JXFBBI1EF",
-    "desc": "Bot de trading en Solana. Soporta órdenes rápidas y gestión desde Telegram.",
+    "desc": "Bot de trading en Solana. Órdenes rápidas desde Telegram.",
     "icon": "https://unavatar.io/telegram/BloomSolana_bot"
   },
   {
     "name": "GM GN Bot (BSC)",
     "url": "https://t.me/GMGN_bsc_bot?start=i_tlbmPSaq",
-    "desc": "Bot de trading en Binance Smart Chain con sniping y alerts.",
+    "desc": "Bot de trading en BSC con sniping y alerts.",
     "icon": "https://unavatar.io/telegram/GMGN_bsc_bot"
+  },
+  {
+    "name": "Trojan Bot (Solana)",
+    "url": "https://t.me/achilles_trojanbot?start=r-cryptonotaz",
+    "desc": "Bot de trading en Solana (Trojan).",
+    "icon": "https://unavatar.io/telegram/achilles_trojanbot"
   }
 ]
+
