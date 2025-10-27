@@ -52,7 +52,7 @@
 
       <!-- CONTENIDO -->
       <main>
-        <!-- Grupo unido: MC + VOL 24h + Latam SZN + Solicitar listado (separado del tema, que va en sidebar) -->
+        <!-- Grupo unido: MC + VOL 24h + Latam SZN + Solicitar listado -->
         <div class="mb-4 flex items-center justify-center sm:justify-between gap-2">
           <div class="hidden sm:inline-flex items-stretch rounded-lg overflow-hidden border border-gray-300 dark:border-gray-700">
             <!-- MC total -->
@@ -98,6 +98,8 @@
               <div class="flex flex-col leading-none">
                 <span class="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">Latam SZN</span>
                 <span id="fgValue" class="font-semibold tabular-nums">--</span>
+                <!-- NUEVO: palabra del estado -->
+                <span id="fgWord" class="text-[11px] font-medium">—</span>
               </div>
             </div>
 
@@ -248,30 +250,35 @@
     // ---------- Fear & Greed helpers ----------
     const fgChip=document.getElementById('fgChip');
     const fgValueEl=document.getElementById('fgValue');
+    const fgWordEl=document.getElementById('fgWord'); // NUEVO
     const fgMarker=document.getElementById('fgMarker');
     const FG_EMA_KEY='latam_fgi_ema';
     const FG_TS_KEY='latam_fgi_ts';
-    const FG_CACHE_MS=12*60*60*1000; // 12 horas
+    const FG_CACHE_MS=24*60*60*1000; // 24 horas (ANTES: 12h)
     const FG_ALPHA=0.30;
 
     const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
     const mapClip=(v,a,b,A,B)=>{if(a===b)return(A+B)/2;const t=clamp((v-a)/(b-a),0,1);return A+(B-A)*t;};
     const mean=arr=>arr.length?arr.reduce((a,b)=>a+b,0)/arr.length:0;
     const stdev=arr=>{if(arr.length<2)return 0;const m=mean(arr);const v=mean(arr.map(x=>(x-m)**2));return Math.sqrt(v);};
-    const percentile=(arr,p)=>{if(!arr.length)return 0;const a=[...arr].sort((x,y)=>x-y);const idx=clamp((p/100)*(a.length-1),0,a.length-1);const lo=Math.floor(idx),hi=Math.ceil(idx);if(lo===hi)return a[lo];const t=idx-lo;return a[lo]*(1-t)+a[hi]*(1-t)+a[hi]*t;};
+    const percentile=(arr,p)=>{if(!arr.length)return 0;const a=[...arr].sort((x,y)=>x-y);const idx=clamp((p/100)*(a.length-1),0,a.length-1);const lo=Math.floor(idx),hi=Math.ceil(idx);if(lo===hi)return a[lo];const t=idx-lo;return a[lo]*(1-t)+a[hi]*t;};
 
     function bucketForScore(s){
-      if(s<=24) return {label:'Extreme Fear',cls:'text-red-500'};
-      if(s<=44) return {label:'Fear',cls:'text-orange-500'};
-      if(s<56)  return {label:'Neutral',cls:'text-gray-700 dark:text-gray-200'};
-      if(s<=74) return {label:'Greed',cls:'text-green-500'};
-      return {label:'Extreme Greed',cls:'text-emerald-500'};
+      if(s<=24) return {label:'Extreme Fear', es:'Pánico', cls:'text-red-500'};
+      if(s<=44) return {label:'Fear',          es:'Miedo',  cls:'text-orange-500'};
+      if(s< 56) return {label:'Neutral',       es:'Neutral',cls:'text-yellow-500 dark:text-yellow-400'};
+      if(s<=74) return {label:'Greed',         es:'Avaricia',cls:'text-green-500'};
+      return        {label:'Extreme Greed',    es:'Bullish', cls:'text-emerald-500'};
     }
 
     function renderFg(shown, extras){
       const bucket=bucketForScore(shown);
       fgValueEl.textContent=shown;
       fgValueEl.className='font-semibold tabular-nums '+bucket.cls;
+      if(fgWordEl){
+        fgWordEl.textContent=bucket.es;
+        fgWordEl.className='text-[11px] font-medium '+bucket.cls;
+      }
 
       // mueve la aguja (centro 40,40 radio 34)
       const r=34, cx=40, cy=40;
@@ -281,13 +288,13 @@
 
       fgChip.title = extras
         ? [
-            `Latam SZN: ${shown} (${bucket.label})`,
+            `Latam SZN: ${shown} (${bucket.es})`,
             `Breadth: ${extras.breadth}`,
             `Momentum: ${extras.momentum}`,
             `Liquidez: ${extras.liq}`,
             `Volatilidad: ${extras.vol}`
           ].join(' · ')
-        : `Latam SZN: ${shown} (${bucket.label})`;
+        : `Latam SZN: ${shown} (${bucket.es})`;
 
       fgChip.classList.remove('hidden');
     }
@@ -298,7 +305,7 @@
         const lastTs = Number(localStorage.getItem(FG_TS_KEY)) || 0;
         const cached = Number(localStorage.getItem(FG_EMA_KEY));
 
-        // Si no han pasado 12h y hay cache, solo renderiza desde cache
+        // Cache 24h
         if (now - lastTs < FG_CACHE_MS && Number.isFinite(cached)) {
           renderFg(Math.round(cached));
           return;
@@ -522,8 +529,8 @@
         const pairs=await fetchAll(list);
         render(pairs);
         updateTotalMc(pairs);
-        updateTotalVol(pairs);            // NUEVO: Volumen total
-        updateFearIndex(pairs);           // usa cache 12h
+        updateTotalVol(pairs);
+        updateFearIndex(pairs);           // ahora cachea 24h
         statusEl.textContent=`Actualizado: ${new Date().toLocaleTimeString()} · Auto 60s`;
       }catch(err){
         console.error(err);
@@ -893,9 +900,5 @@
   <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"c7335ec6ec0c4d8ba06040d145c5166f"}'></script>
 </body>
 </html>
-
-
-
-
 
 
