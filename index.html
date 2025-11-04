@@ -55,7 +55,6 @@
       <!-- CONTENIDO -->
       <main>
         <!-- Grupo unido: MC + VOL 24h + Latam SZN + Solicitar listado -->
-        <!-- Alineado a los extremos (antes: justify-center sm:justify-between) -->
         <div class="mb-4 flex items-center justify-between gap-2">
           <div class="hidden sm:inline-flex items-stretch rounded-lg overflow-hidden border border-gray-300 dark:border-gray-700">
             <!-- MC total -->
@@ -101,7 +100,6 @@
               <div class="flex flex-col leading-none">
                 <span class="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">Latam SZN</span>
                 <span id="fgValue" class="font-semibold tabular-nums">--</span>
-                <!-- NUEVO: palabra del estado -->
                 <span id="fgWord" class="text-[11px] font-medium">—</span>
               </div>
             </div>
@@ -123,16 +121,18 @@
               <span id="status" class="text-sm text-gray-600 dark:text-gray-400"></span>
             </div>
 
-            <!-- bordes un poco más suaves; no cambia lógica -->
             <div class="overflow-x-auto bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl shadow">
               <table class="w-full table-auto text-xs sm:text-sm" id="table">
                 <thead class="bg-gray-100 dark:bg-gray-700 sticky top-0 z-10">
                   <tr>
                     <th class="w-6 px-2 py-2 sm:px-4 sm:py-3 text-left">#</th>
                     <th class="px-2 py-2 sm:px-4 sm:py-3 text-left">Ticker</th>
-                    <th class="w-20 sm:w-28 px-2 py-2 sm:px-4 sm:py-3 text-left">Plataforma</th>
                     <th class="w-24 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right">Precio</th>
-                    <th class="w-14 sm:w-20 px-2 py-2 sm:px-4 sm:py-3 text-right">24h</th>
+                    <th class="w-16 sm:w-20 px-2 py-2 sm:px-4 sm:py-3 text-right">24h</th>
+                    <th class="w-24 sm:w-28 px-2 py-2 sm:px-4 sm:py-3 text-right">Vol 24h</th>
+                    <th class="w-24 sm:w-28 px-2 py-2 sm:px-4 sm:py-3 text-right">Liquidez</th>
+                    <th class="w-20 sm:w-24 px-2 py-2 sm:px-4 sm:py-3 text-right">Buy/Sell</th>
+                    <th class="w-20 sm:w-24 px-2 py-2 sm:px-4 sm:py-3 text-right">Vol/MC</th>
                     <th class="w-24 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right">Market Cap</th>
                   </tr>
                 </thead>
@@ -190,7 +190,6 @@
           </div>
         </section>
 
-        <!-- HERRAMIENTAS -->
         <section id="tools-section" class="grid gap-4 items-start hidden">
           <div>
             <div class="flex items-center gap-3 mb-3 justify-center sm:justify-start">
@@ -222,6 +221,8 @@
     const fmtUsdSmart=(n)=>{const o={style:'currency',currency:'USD'};if(Math.abs(n)>=1){o.minimumFractionDigits=2;o.maximumFractionDigits=2;}else{o.minimumFractionDigits=5;o.maximumFractionDigits=5;}return new Intl.NumberFormat('en-US',o).format(n);};
     const fmtUsdCompact=(n)=>{try{return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',notation:'compact',maximumFractionDigits:2}).format(n);}catch{const abs=Math.abs(n),u=[['T',1e12],['B',1e9],['M',1e6],['K',1e3]];for(const[s,v]of u)if(abs>=v)return '$'+(n/v).toFixed(2)+s;return fmtUsd(n);}};
     const toNum=(v)=>{if(v===null||v===undefined)return null;const n=Number(String(v).replace(/[^0-9.]/g,''));return Number.isFinite(n)?n:null;};
+    const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+    const clampAbs=(x,max)=>Math.min(Math.abs(x||0),max);
 
     // --- Total MC ---
     const totalMcBox=document.getElementById('totalMc');
@@ -254,14 +255,13 @@
     // ---------- Fear & Greed helpers ----------
     const fgChip=document.getElementById('fgChip');
     const fgValueEl=document.getElementById('fgValue');
-    const fgWordEl=document.getElementById('fgWord'); // NUEVO
+    const fgWordEl=document.getElementById('fgWord');
     const fgMarker=document.getElementById('fgMarker');
     const FG_EMA_KEY='latam_fgi_ema';
     const FG_TS_KEY='latam_fgi_ts';
-    const FG_CACHE_MS=24*60*60*1000; // 24 horas (ANTES: 12h)
+    const FG_CACHE_MS=24*60*60*1000; // 24 horas
     const FG_ALPHA=0.30;
 
-    const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
     const mapClip=(v,a,b,A,B)=>{if(a===b)return(A+B)/2;const t=clamp((v-a)/(b-a),0,1);return A+(B-A)*t;};
     const mean=arr=>arr.length?arr.reduce((a,b)=>a+b,0)/arr.length:0;
     const stdev=arr=>{if(arr.length<2)return 0;const m=mean(arr);const v=mean(arr.map(x=>(x-m)**2));return Math.sqrt(v);};
@@ -283,13 +283,11 @@
         fgWordEl.textContent=bucket.es;
         fgWordEl.className='text-[11px] font-medium '+bucket.cls;
       }
-
       // mueve la aguja (centro 40,40 radio 34)
       const r=34, cx=40, cy=40;
       const rad=Math.PI*(1 - shown/100);
       fgMarker.setAttribute('cx', String(cx + r*Math.cos(rad)));
       fgMarker.setAttribute('cy', String(cy + r*Math.sin(rad)));
-
       fgChip.title = extras
         ? [
             `Latam SZN: ${shown} (${bucket.es})`,
@@ -299,7 +297,6 @@
             `Volatilidad: ${extras.vol}`
           ].join(' · ')
         : `Latam SZN: ${shown} (${bucket.es})`;
-
       fgChip.classList.remove('hidden');
     }
 
@@ -308,14 +305,9 @@
         const now = Date.now();
         const lastTs = Number(localStorage.getItem(FG_TS_KEY)) || 0;
         const cached = Number(localStorage.getItem(FG_EMA_KEY));
-
-        // Cache 24h
         if (now - lastTs < FG_CACHE_MS && Number.isFinite(cached)) {
-          renderFg(Math.round(cached));
-          return;
+          renderFg(Math.round(cached)); return;
         }
-
-        // Recalcular
         const items=pairs.map(p=>{
           const ret=toNum(p?.priceChange?.h24);
           const mc =(typeof p?.marketCap==='number')?p.marketCap:((typeof p?.fdv==='number')?p.fdv:0);
@@ -363,8 +355,10 @@
     }
 
     // ---------- Plataforma (Pump / Bonk) ----------
-    const PLATFORM_ICONS={pump:{primary:'https://unavatar.io/pump.fun',fallback:'https://pump.fun/favicon.ico'},
-                          bonk:{primary:'https://unavatar.io/bonk.fun',fallback:'https://bonk.fun/favicon.ico'}};
+    const PLATFORM_ICONS={
+      pump:{primary:'https://unavatar.io/pump.fun',fallback:'https://pump.fun/favicon.ico'},
+      bonk:{primary:'https://unavatar.io/bonk.fun',fallback:'https://bonk.fun/favicon.ico'}
+    };
     function detectPlatform(address){
       if(!address) return null;
       const ca=String(address).trim(); const low=ca.toLowerCase();
@@ -410,7 +404,7 @@
         const qSym=(p.quoteToken?.symbol||'').toUpperCase();
         const isUsd=USD_QUOTES.some(u=>qSym.includes(u));
         const liq=p.liquidity?.usd??0;
-        the_vol=p.volume?.h24??0;
+        const the_vol=p.volume?.h24??0;
         const score=(isUsd?1:0)*1e12 + liq*1e6 + the_vol;
         const prev=best.get(base);
         if(!prev||score>prev.__score){ p.__score=score; best.set(base,p); }
@@ -448,6 +442,9 @@
         fdv:(typeof p.fdv==='number'?p.fdv:null),
         liq:p.liquidity?.usd??null,
         change24:p.priceChange?.h24??null,
+        volume24:(p.volume?.h24 ?? null),
+        buys24:(p.txns?.h24?.buys ?? null),
+        sells24:(p.txns?.h24?.sells ?? null),
         xUrl:getXUrl(p.info),
         chainId:p.chainId,
         url:p.url,
@@ -461,6 +458,11 @@
         tr.className='group cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/40 leading-tight';
         const chg=t.change24; const chgClass=chg==null?'':(chg>=0?'text-green-600':'text-red-500');
         const cap=t.mc??t.fdv; const badge=t.mc!=null?'MC':(t.fdv!=null?'FDV':'—');
+
+        // Logos oficiales (Dexscreener + X) como <img>
+        const dexLogo = `<img src="https://dexscreener.com/favicon.png" alt="Dexscreener" class="w-3.5 h-3.5 rounded-sm" referrerpolicy="no-referrer">`;
+        const xLogo = `<img src="https://abs.twimg.com/favicons/twitter.2.ico" alt="X" class="w-3.5 h-3.5 rounded-sm">`;
+
         tr.innerHTML=`
           <td class="w-6 px-2 py-2 sm:px-4 sm:py-3 text-gray-500 dark:text-gray-400">${i+1}</td>
           <td class="px-2 py-2 sm:px-4 sm:py-3">
@@ -468,24 +470,48 @@
               ${t.imageUrl?`<img src="${t.imageUrl}" class="w-5 h-5 rounded-full"/>`:''}
               <span class="font-semibold truncate lp-copy" data-copy="${t.address||''}" title="Mantén presionado para copiar CA">${t.symbol||t.name}</span>
               <span class="inline-flex text-[10px] px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-700">${t.chainId}</span>
-              ${t.url?`<a href="${t.url}" class="hidden md:inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200 dark:hover:bg-gray-700" title="Ver en Dexscreener">↗</a>`:''}
-              ${t.xUrl?`<a href="${t.xUrl}" class="hidden md:inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200 dark:hover:bg-gray-700" title="X / Twitter">
-                <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="currentColor" aria-hidden="true"><path d="M18.244 3.515h3.167l-6.92 7.91 8.11 9.06H19.21l-5.66-6.328-6.465 6.328H3.917l7.405-7.245-7.87-8.726h4.04l5.157 5.723 5.595-5.723Zm-1.112 16.01h1.755L7.94 5.864H6.06l11.072 13.662Z"></path></svg>
-              </a>`:''}
+
+              ${t.url?`<a href="${t.url}" class="hidden md:inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200 dark:hover:bg-gray-700" title="Ver en Dexscreener">${dexLogo}</a>`:''}
+              ${t.xUrl?`<a href="${t.xUrl}" class="hidden md:inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200 dark:hover:bg-gray-700" title="X / Twitter">${xLogo}</a>`:''}
+              ${t.platform?`
+                <a href="${t.platform.url}" target="_blank" rel="noopener" class="hidden md:inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200 dark:hover:bg-gray-700" title="${t.platform.name}">
+                  <img src="${t.platform.iconPrimary}" onerror="this.onerror=null;this.src='${t.platform.iconFallback}'" alt="${t.platform.name}" class="w-3.5 h-3.5 rounded-sm" referrerpolicy="no-referrer"/>
+                </a>`:''}
+
               ${t.address?`<button class="copy relative shrink-0 hidden sm:inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200 dark:hover:bg-gray-700" data-copy="${t.address}" aria-label="Copiar CA">
                 <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="currentColor" aria-hidden="true"><path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"></path></svg>
                 <span class="tooltip absolute top-7 right-0 bg-black text-white text-[10px] px-2 py-0.5 rounded opacity-0 pointer-events-none transition-opacity">Copiado</span>
               </button>`:''}
             </div>
           </td>
-          <td class="w-20 sm:w-28 px-2 py-2 sm:px-4 sm:py-3">
-            ${t.platform?`
-              <a href="${t.platform.url}" target="_blank" rel="noopener" class="inline-flex items-center">
-                <img src="${t.platform.iconPrimary}" onerror="this.onerror=null;this.src='${t.platform.iconFallback}'" alt="${t.platform.name}" class="w-4 h-4 rounded-sm" referrerpolicy="no-referrer"/>
-              </a>`:`<span class="text-gray-400">—</span>`}
+
+          <td class="w-28 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">
+            ${t.priceUsd!=null?fmtUsdSmart(t.priceUsd):'—'}
           </td>
-          <td class="w-28 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">${t.priceUsd!=null?fmtUsdSmart(t.priceUsd):'—'}</td>
-          <td class="w-16 sm:w-20 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap ${chgClass}">${chg!=null?fmtNum(chg,2)+'%':'—'}</td>
+
+          <td class="w-16 sm:w-20 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap ${chgClass}">
+            ${chg!=null?fmtNum(chg,2)+'%':'—'}
+            <div class="mt-1 h-1.5 rounded-full overflow-hidden bg-gray-300/40 dark:bg-gray-700/50">
+              <div class="${chg>=0?'bg-green-500':'bg-red-500'} h-1.5" style="width:${clampAbs(chg,15)/15*100}%"></div>
+            </div>
+          </td>
+
+          <td class="w-24 sm:w-28 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">
+            ${t.volume24!=null?fmtUsdCompact(t.volume24):'—'}
+          </td>
+
+          <td class="w-24 sm:w-28 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">
+            ${t.liq!=null?fmtUsdCompact(t.liq):'—'}
+          </td>
+
+          <td class="w-20 sm:w-24 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">
+            ${t.buys24!=null&&t.sells24!=null ? `${fmtNum(t.buys24,0)}·${fmtNum(t.sells24,0)}` : '—'}
+          </td>
+
+          <td class="w-20 sm:w-24 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">
+            ${(t.volume24!=null && (cap)) ? fmtNum((t.volume24/cap)*100,1)+'%' : '—'}
+          </td>
+
           <td class="w-24 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">
             <span class="md:hidden">${cap!=null?fmtUsdCompact(cap):'—'}</span>
             <span class="hidden md:inline">${cap!=null?fmtUsd(cap):'—'} <span class="ml-1 text:[10px] px-1 py-0.5 rounded bg-gray-100 dark:bg-gray-700 border dark:border-gray-600">${badge}</span></span>
@@ -495,14 +521,15 @@
         const det=document.createElement('tr');
         det.className='details hidden bg-white/70 dark:bg-gray-800/70';
         det.innerHTML=`
-          <td colspan="6" class="px-4 py-3">
+          <td colspan="9" class="px-4 py-3">
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs text-gray-700 dark:text-gray-300">
               <div class="md:col-span-4 flex items-center gap-2 text-sm">
                 ${t.imageUrl?`<img src="${t.imageUrl}" class="w-5 h-5 rounded-full"/>`:''}
                 <span class="font-semibold">${t.name||'—'}</span>
-                <span class="text-xs text-gray-5 00 dark:text-gray-400 uppercase">${t.symbol}</span>
+                <span class="text-xs text-gray-500 dark:text-gray-400 uppercase">${t.symbol}</span>
                 <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-700">${t.chainId}</span>
               </div>
+
               <div class="md:col-span-4 flex flex-wrap items-center gap-2">
                 <span class="font-medium">CA:</span>
                 <code class="font-mono text-xs sm:text-[13px] break-all md:whitespace-nowrap select-all">${t.address||'—'}</code>
@@ -511,13 +538,17 @@
                   <span class="tooltip absolute top-7 right-0 bg-black text-white text-[10px] px-2 py-0.5 rounded opacity-0 pointer-events-none transition-opacity">Copiado</span>
                 </button>
               </div>
+
               <div><span class="font-medium">Liquidez:</span> ${t.liq!=null?fmtUsd(t.liq):'—'}</div>
+              <div><span class="font-medium">Vol 24h:</span> ${t.volume24!=null?fmtUsd(t.volume24):'—'}</div>
+              <div><span class="font-medium">Buy/Sell 24h:</span> ${t.buys24!=null&&t.sells24!=null?`${fmtNum(t.buys24,0)}·${fmtNum(t.sells24,0)}`:'—'}</div>
               <div><span class="font-medium">Market Cap:</span> ${cap!=null?fmtUsd(cap):'—'} (${badge})</div>
               ${t.fdv!=null?`<div><span class="font-medium">FDV:</span> ${fmtUsd(t.fdv)}</div>`:''}
-              <div class="flex gap-2">
-                ${t.url?`<a href="${t.url}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600">Dexscreener</a>`:''}
-                ${t.xUrl?`<a href="${t.xUrl}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600">X/Twitter</a>`:''}
-                ${t.platform?`<a href="${t.platform.url}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600">${t.platform.name}</a>`:''}
+
+              <div class="flex gap-2 flex-wrap md:col-span-4">
+                ${t.url?`<a href="${t.url}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600 inline-flex items-center gap-2">${dexLogo}<span>Dexscreener</span></a>`:''}
+                ${t.xUrl?`<a href="${t.xUrl}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600 inline-flex items-center gap-2">${xLogo}<span>X/Twitter</span></a>`:''}
+                ${t.platform?`<a href="${t.platform.url}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600 inline-flex items-center gap-2"><img src="${t.platform.iconPrimary}" onerror="this.onerror=null;this.src='${t.platform.iconFallback}'" class="w-4 h-4 rounded-sm" referrerpolicy="no-referrer"/><span>${t.platform.name}</span></a>`:''}
               </div>
             </div>
           </td>`;
@@ -611,6 +642,7 @@
     }
 
     function renderNfts(rows){
+      const nftTbody=document.getElementById('nftTbody');
       nftTbody.innerHTML='';
       rows.forEach((c,i)=>{
         const tr=document.createElement('tr');
@@ -719,7 +751,7 @@
               ${c.avatar?`<img src="${c.avatar}" class="w-6 h-6 rounded-full"/>`:''}
               <span class="font-semibold truncate">${c.name}</span>
               ${c.x?`<a class="inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200 dark:hover:bg-gray-700" target="_blank" rel="noopener" href="${c.x}" title="Perfil en X">
-                <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="currentColor" aria-hidden="true"><path d="M18.244 3.515h3.167l-6.92 7.91 8.11 9.06H19.21l-5.66-6.328-6.465 6.328H3.917l7.405-7.245-7.87-8.726h4.04l5.157 5.723 5.595-5.723Zm-1.112 16.01h1.755L7.94 5.864H6.06l11.072 13.662Z"></path></svg>
+                <img src="https://abs.twimg.com/favicons/twitter.2.ico" class="w-3.5 h-3.5 rounded-sm" alt="X">
               </a>`:''}
             </div>
           </td>
@@ -763,7 +795,7 @@
       }catch(err){ console.error(err); creStatus.textContent='Error al actualizar creadores.'; }
     }
 
-    // ---------- tools (NUEVO) ----------
+    // ---------- tools ----------
     const toolsListEl=document.getElementById('toolsList');
     const toolsStatus=document.getElementById('toolsStatus');
     const toolsRefreshBtn=document.getElementById('toolsRefreshBtn');
@@ -904,6 +936,8 @@
   <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"c7335ec6ec0c4d8ba06040d145c5166f"}'></script>
 </body>
 </html>
+
+
 
 
 
