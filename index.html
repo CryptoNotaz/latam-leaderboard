@@ -24,13 +24,15 @@
 </head>
 
 <body class="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
-  <div class="max-w-5xl mx-auto px-3 sm:px-6 py-6">
+  <!-- Ancho ampliado (antes: max-w-5xl) -->
+  <div class="max-w-screen-2xl 2xl:max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8 py-6">
     <header class="mb-6 text-center">
       <h1 class="text-2xl sm:text-3xl font-bold">Latam Market Cap</h1>
     </header>
 
     <!-- LAYOUT con sidebar fija -->
-    <div class="grid grid-cols-1 sm:grid-cols-[168px_1fr] gap-4">
+    <!-- Sidebar un poco más ancho en pantallas grandes -->
+    <div class="grid grid-cols-1 sm:grid-cols-[168px_1fr] lg:grid-cols-[192px_1fr] gap-4">
       <!-- SIDEBAR -->
       <aside class="sm:sticky sm:top-4 sm:self-start bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-3">
         <nav class="flex sm:flex-col gap-2">
@@ -53,7 +55,8 @@
       <!-- CONTENIDO -->
       <main>
         <!-- Grupo unido: MC + VOL 24h + Latam SZN + Solicitar listado -->
-        <div class="mb-4 flex items-center justify-center sm:justify-between gap-2">
+        <!-- Alineado a los extremos (antes: justify-center sm:justify-between) -->
+        <div class="mb-4 flex items-center justify-between gap-2">
           <div class="hidden sm:inline-flex items-stretch rounded-lg overflow-hidden border border-gray-300 dark:border-gray-700">
             <!-- MC total -->
             <div id="totalMc"
@@ -120,7 +123,8 @@
               <span id="status" class="text-sm text-gray-600 dark:text-gray-400"></span>
             </div>
 
-            <div class="overflow-x-auto bg-white dark:bg-gray-800 rounded-2xl shadow">
+            <!-- bordes un poco más suaves; no cambia lógica -->
+            <div class="overflow-x-auto bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl shadow">
               <table class="w-full table-auto text-xs sm:text-sm" id="table">
                 <thead class="bg-gray-100 dark:bg-gray-700 sticky top-0 z-10">
                   <tr>
@@ -145,7 +149,7 @@
               <button id="nftRefreshBtn" class="px-4 py-2 rounded-xl bg-black text-white font-medium shadow hover:opacity-90 active:opacity-80">Actualizar</button>
               <span id="nftStatus" class="text-sm text-gray-600 dark:text-gray-400"></span>
             </div>
-            <div class="overflow-x-auto bg-white dark:bg-gray-800 rounded-2xl shadow">
+            <div class="overflow-x-auto bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl shadow">
               <table class="w-full table-auto text-xs sm:text-sm">
                 <thead class="bg-gray-100 dark:bg-gray-700 sticky top-0 z-10">
                   <tr>
@@ -170,7 +174,7 @@
               <button id="creRefreshBtn" class="px-4 py-2 rounded-xl bg-black text-white font-medium shadow hover:opacity-90 active:opacity-80">Actualizar</button>
               <span id="creStatus" class="text-sm text-gray-600 dark:text-gray-400"></span>
             </div>
-            <div class="overflow-x-auto bg-white dark:bg-gray-800 rounded-2xl shadow">
+            <div class="overflow-x-auto bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl shadow">
               <table class="w-full table-auto text-xs sm:text-sm">
                 <thead class="bg-gray-100 dark:bg-gray-700 sticky top-0 z-10">
                   <tr>
@@ -900,5 +904,6 @@
   <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"c7335ec6ec0c4d8ba06040d145c5166f"}'></script>
 </body>
 </html>
+
 
 
