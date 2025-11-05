@@ -183,7 +183,7 @@
             <div class="flex items-center gap-3 mb-3 justify-center sm:justify-start">
               <button id="toolsRefreshBtn" class="px-4 py-2 rounded-xl bg-black text-white font-medium shadow hover:opacity-90 active:opacity-80">Actualizar</button>
 
-              <!-- NUEVO: Botón para abrir el comparador -->
+              <!-- Botón para abrir el comparador -->
               <button id="openMcTool" class="px-4 py-2 rounded-xl bg-gray-200 dark:bg-gray-700 dark:text-gray-100 hover:opacity-90">
                 Comparador de Market Cap
               </button>
@@ -207,37 +207,58 @@
     </div>
   </div>
 
-  <!-- ========= NUEVO: MODAL COMPARADOR MC ========= -->
+  <!-- ========= MODAL COMPARADOR MC (NUEVO LOOK + SWAP) ========= -->
   <div id="mcModal" class="fixed inset-0 z-50 hidden">
     <div class="absolute inset-0 bg-black/50"></div>
-    <div class="relative mx-auto mt-16 w-[95%] max-w-2xl rounded-2xl bg-white dark:bg-gray-800 p-5 shadow-xl">
-      <div class="flex items-center justify-between mb-3">
-        <h3 class="text-lg font-semibold">Comparador de Market Cap</h3>
-        <button id="mcClose" class="w-8 h-8 rounded hover:bg-gray-200 dark:hover:bg-gray-700">✕</button>
+    <div class="relative mx-auto mt-12 w-[95%] max-w-3xl rounded-2xl bg-white dark:bg-gray-800 p-6 shadow-2xl">
+      <div class="text-center mb-5">
+        <h3 class="text-2xl font-extrabold leading-tight">
+          Calcula el precio de <span class="underline decoration-emerald-400">A</span>
+          <span class="block sm:inline font-semibold text-emerald-500">con el market cap de B</span>
+        </h3>
+        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Usa MC y, si falta, FDV.</p>
       </div>
 
-      <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
-        Calcula el precio de <strong>A</strong> si tuviera el Market Cap de <strong>B</strong> y viceversa.
-        (Usa MC y, si falta, FDV).
-      </p>
-
-      <div class="grid gap-3 sm:grid-cols-2">
+      <!-- Selectores + botón swap -->
+      <div class="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] items-center gap-3">
         <div>
-          <label class="text-xs text-gray-500 dark:text-gray-400">Token A</label>
-          <select id="mcSelectA" class="mt-1 w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-3 py-2"></select>
+          <label class="text-xs text-gray-500 dark:text-gray-400">Select A</label>
+          <div class="mt-1">
+            <select id="mcSelectA" class="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-3 py-2"></select>
+          </div>
         </div>
+
+        <button id="mcSwap" title="Intercambiar A y B"
+          class="mt-6 sm:mt-7 mx-auto w-11 h-11 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700">
+          <svg viewBox="0 0 24 24" class="w-5 h-5" fill="currentColor" aria-hidden="true">
+            <path d="M7 7h11l-2.5-2.5L17 3l4 4-4 4-1.5-1.5L18 7H7V5zm10 10H6l2.5 2.5L7 21l-4-4 4-4 1.5 1.5L6 17h11v2z"/>
+          </svg>
+        </button>
+
         <div>
-          <label class="text-xs text-gray-500 dark:text-gray-400">Token B</label>
-          <select id="mcSelectB" class="mt-1 w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-3 py-2"></select>
+          <label class="text-xs text-gray-500 dark:text-gray-400">Select B</label>
+          <div class="mt-1">
+            <select id="mcSelectB" class="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-3 py-2"></select>
+          </div>
         </div>
       </div>
 
-      <div class="mt-4 flex items-center gap-2">
-        <button id="mcCalc" class="px-4 py-2 rounded-xl bg-black text-white">Calcular</button>
+      <!-- Acción -->
+      <div class="mt-4 flex items-center gap-2 justify-center">
+        <button id="mcCalc" class="px-5 py-2.5 rounded-xl bg-black text-white font-semibold shadow hover:opacity-90">
+          Calcular
+        </button>
         <span id="mcMsg" class="text-sm text-gray-600 dark:text-gray-400"></span>
       </div>
 
-      <div id="mcOut" class="mt-4 grid gap-3 sm:grid-cols-2"></div>
+      <!-- Resultado -->
+      <div id="mcOut" class="mt-5"></div>
+
+      <div class="mt-5 text-center">
+        <button id="mcClose" class="px-3 py-1.5 text-sm rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-100">
+          Cerrar
+        </button>
+      </div>
     </div>
   </div>
   <!-- ========= /MODAL ========= -->
@@ -474,7 +495,7 @@
         platform:detectPlatform(p.baseToken?.address)
       }));
 
-      // >>> Nuevo: exponer para la herramienta
+      // Exponer para la herramienta
       window.__LATAM_TOKENS = tokens;
 
       tokens.sort((a,b)=>((b.mc??b.fdv??0)-(a.mc??a.fdv??0)));
@@ -955,17 +976,18 @@
       btn.addEventListener('click',()=>{ const next=document.documentElement.classList.contains('dark')?'light':'dark'; setTheme(next); });
     })();
 
-    // ======= NUEVO: Lógica del Comparador MC =======
+    // ======= Lógica del Comparador MC (NUEVO con SWAP) =======
     const mcModal = document.getElementById('mcModal');
     const mcOpen  = document.getElementById('openMcTool');
     const mcClose = document.getElementById('mcClose');
     const selA = document.getElementById('mcSelectA');
     const selB = document.getElementById('mcSelectB');
     const mcCalcBtn = document.getElementById('mcCalc');
+    const mcSwapBtn = document.getElementById('mcSwap');
     const mcMsg = document.getElementById('mcMsg');
     const mcOut = document.getElementById('mcOut');
 
-    function capOf(t){ return (typeof t?.mc==='number' ? t.mc : (typeof t?.fdv==='number' ? t.fdv : null)); }
+    const capOf = (t)=> (typeof t?.mc==='number' ? t.mc : (typeof t?.fdv==='number' ? t.fdv : null));
 
     function populateMcSelects(){
       const list=(window.__LATAM_TOKENS||[]).filter(t=>t && t.priceUsd!=null && capOf(t)!=null);
@@ -978,42 +1000,84 @@
       selB.selectedIndex = Math.min(1, list.length-1);
     }
 
+    function getRankByCap(list, token){
+      const arr = [...list].sort((a,b)=>(capOf(b)||0)-(capOf(a)||0));
+      const idx = arr.findIndex(x=>x.address===token.address);
+      return (idx>=0) ? (idx+1) : null;
+    }
+
     function computeMc(){
       const list=(window.__LATAM_TOKENS||[]).filter(t=>t && t.priceUsd!=null && capOf(t)!=null);
-      if(!list.length || !Number.isFinite(selA.selectedIndex) || !Number.isFinite(selB.selectedIndex)){
-        mcMsg.textContent='No hay datos suficientes (necesitas precio y MC/FDV).';
-        mcOut.innerHTML=''; return;
-      }
+      if(list.length<2){ mcMsg.textContent='Agrega más tokens a tokens.json para comparar.'; mcOut.innerHTML=''; return; }
+
       const A=list[selA.selectedIndex], B=list[selB.selectedIndex];
       if(!A||!B){ mcMsg.textContent='Selecciona ambos tokens.'; mcOut.innerHTML=''; return; }
+      if(A.address===B.address){ mcMsg.textContent='Selecciona tokens distintos.'; mcOut.innerHTML=''; return; }
 
       const pA=A.priceUsd, pB=B.priceUsd;
       const mcA=capOf(A), mcB=capOf(B);
 
-      // Precio de A con MC de B: pA' = pA * (mcB/mcA)
       const pAeq = pA * (mcB / mcA);
-      const chgA = ((pAeq - pA)/pA) * 100;
-
-      // Precio de B con MC de A
       const pBeq = pB * (mcA / mcB);
+      const chgA = ((pAeq - pA)/pA) * 100;
       const chgB = ((pBeq - pB)/pB) * 100;
 
+      const rA = getRankByCap(list,A);
+      const rB = getRankByCap(list,B);
+
       mcMsg.textContent='';
+
       mcOut.innerHTML = `
-        <div class="p-3 rounded-xl border border-gray-300 dark:border-gray-700">
-          <div class="text-sm mb-1"><strong>${A.symbol||A.name}</strong> (actual: ${fmtUsdSmart(pA)}, MC: ${fmtUsd(mcA)})</div>
-          <div class="text-base font-semibold">Si ${A.symbol||A.name} tuviera el MC de ${B.symbol||B.name} → <span class="tabular-nums">${fmtUsdSmart(pAeq)}</span></div>
-          <div class="${chgA>=0?'text-green-500':'text-red-500'} text-sm mt-1">Cambio: ${fmtNum(chgA,2)}%</div>
-        </div>
-        <div class="p-3 rounded-xl border border-gray-300 dark:border-gray-700">
-          <div class="text-sm mb-1"><strong>${B.symbol||B.name}</strong> (actual: ${fmtUsdSmart(pB)}, MC: ${fmtUsd(mcB)})</div>
-          <div class="text-base font-semibold">Si ${B.symbol||B.name} tuviera el MC de ${A.symbol||A.name} → <span class="tabular-nums">${fmtUsdSmart(pBeq)}</span></div>
-          <div class="${chgB>=0?'text-green-500':'text-red-500'} text-sm mt-1">Cambio: ${fmtNum(chgB,2)}%</div>
+        <div class="mx-auto max-w-2xl rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-5 shadow">
+          <div class="flex items-center gap-2 text-sm mb-2">
+            <div class="w-5 h-5 rounded-full overflow-hidden">${A.imageUrl?`<img src="${A.imageUrl}" class="w-5 h-5">`:''}</div>
+            <span class="font-semibold">${A.symbol||A.name}</span>
+            <span class="text-gray-500">precio con el market cap de</span>
+            <div class="w-5 h-5 rounded-full overflow-hidden">${B.imageUrl?`<img src="${B.imageUrl}" class="w-5 h-5">`:''}</div>
+            <span class="font-semibold">${B.symbol||B.name}</span>
+          </div>
+
+          <div class="text-center my-2">
+            <div class="text-3xl sm:text-4xl font-extrabold tabular-nums">${fmtUsdSmart(pAeq)}</div>
+            <div class="mt-1 text-emerald-600 font-semibold">(${(pAeq/pA).toFixed(2)}x)</div>
+          </div>
+
+          <div class="grid sm:grid-cols-2 gap-3 mt-4 text-sm">
+            <div class="p-3 rounded-xl bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700">
+              <div class="flex items-center justify-between">
+                <span class="text-gray-600 dark:text-gray-400">${A.symbol||A.name} mcap ${rA?`<span class='ml-1 text-[10px] px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-700'>#${rA}</span>`:''}</span>
+                <span class="font-semibold tabular-nums">${fmtUsd(mcA)}</span>
+              </div>
+            </div>
+            <div class="p-3 rounded-xl bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700">
+              <div class="flex items-center justify-between">
+                <span class="text-gray-600 dark:text-gray-400">${B.symbol||B.name} mcap ${rB?`<span class='ml-1 text-[10px] px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-700'>#${rB}</span>`:''}</span>
+                <span class="font-semibold tabular-nums">${fmtUsd(mcB)}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4 grid sm:grid-cols-2 gap-3 text-xs text-gray-600 dark:text-gray-400">
+            <div>Precio actual de ${A.symbol||A.name}: <span class="font-medium text-gray-900 dark:text-gray-100">${fmtUsdSmart(pA)}</span></div>
+            <div>Precio actual de ${B.symbol||B.name}: <span class="font-medium text-gray-900 dark:text-gray-100">${fmtUsdSmart(pB)}</span></div>
+          </div>
+
+          <div class="mt-4 p-3 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 text-sm">
+            Si <strong>${B.symbol||B.name}</strong> tuviera el MC de <strong>${A.symbol||A.name}</strong> →
+            <span class="font-semibold tabular-nums">${fmtUsdSmart(pBeq)}</span>
+            <span class="${chgB>=0?'text-emerald-600':'text-red-500'}">(${fmtNum(chgB,2)}%)</span>
+          </div>
+
+          <div class="mt-4 flex items-center gap-2 text-xs text-gray-500">
+            <img src="https://dexscreener.com/favicon.png" class="w-4 h-4 rounded-sm" alt="">
+            <span>Datos base: Dexscreener (MC/FDV del listado cargado)</span>
+          </div>
         </div>
       `;
     }
 
-    mcOpen?.addEventListener('click', ()=>{
+    // abrir/cerrar + calcular + swap
+    document.getElementById('openMcTool')?.addEventListener('click', ()=>{
       populateMcSelects();
       mcOut.innerHTML='';
       mcMsg.textContent = (Number(selA.dataset.len||0) < 2) ? 'Consejo: agrega más tokens a tokens.json para comparar.' : '';
@@ -1021,13 +1085,22 @@
     });
     mcClose?.addEventListener('click', ()=> mcModal.classList.add('hidden'));
     mcModal?.addEventListener('click', (e)=>{ if(e.target===mcModal) mcModal.classList.add('hidden'); });
+
     mcCalcBtn?.addEventListener('click', computeMc);
+
+    mcSwapBtn?.addEventListener('click', ()=>{
+      const iA = selA.selectedIndex;
+      selA.selectedIndex = selB.selectedIndex;
+      selB.selectedIndex = iA;
+      computeMc(); // recalcula al instante tras el swap
+    });
     // ======= /Comparador MC =======
   </script>
   <!-- 🌐 Cloudflare Web Analytics -->
   <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"c7335ec6ec0c4d8ba06040d145c5166f"}'></script>
 </body>
 </html>
+
 
 
 
