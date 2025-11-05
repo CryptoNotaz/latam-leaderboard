@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Latam Market Cap — Dexscreener</title>
 
-  <!-- 0) Aplica dark justo al inicio para evitar parpadeo -->
   <script>
     (function () {
       const saved = localStorage.getItem('theme');
@@ -24,16 +23,12 @@
 </head>
 
 <body class="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
-  <!-- Ancho ampliado (antes: max-w-5xl) -->
   <div class="max-w-screen-2xl 2xl:max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8 py-6">
     <header class="mb-6 text-center">
       <h1 class="text-2xl sm:text-3xl font-bold">Latam Market Cap</h1>
     </header>
 
-    <!-- LAYOUT con sidebar fija -->
-    <!-- Sidebar un poco más ancho en pantallas grandes -->
     <div class="grid grid-cols-1 sm:grid-cols-[168px_1fr] lg:grid-cols-[192px_1fr] gap-4">
-      <!-- SIDEBAR -->
       <aside class="sm:sticky sm:top-4 sm:self-start bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-3">
         <nav class="flex sm:flex-col gap-2">
           <button id="tabCoins" class="px-3 py-2 rounded-lg bg-black text-white text-left">Coins</button>
@@ -43,7 +38,6 @@
         </nav>
 
         <div class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-          <!-- Botón de tema (mismo id que antes para no romper lógica) -->
           <button id="themeToggle"
             class="w-full px-3 py-2 text-sm rounded-lg bg-gray-100 text-gray-800 hover:bg-gray-200
                    dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600">
@@ -52,12 +46,10 @@
         </div>
       </aside>
 
-      <!-- CONTENIDO -->
       <main>
-        <!-- Grupo unido: MC + VOL 24h + Latam SZN + Solicitar listado -->
+        <!-- Top chips (igual que antes) -->
         <div class="mb-4 flex items-center justify-between gap-2">
           <div class="hidden sm:inline-flex items-stretch rounded-lg overflow-hidden border border-gray-300 dark:border-gray-700">
-            <!-- MC total -->
             <div id="totalMc"
                 class="hidden px-3 py-1.5 text-sm bg-white text-gray-800
                       dark:bg-gray-800 dark:text-gray-100
@@ -67,7 +59,6 @@
               <span id="totalMcValue" class="tabular-nums">$0</span>
             </div>
 
-            <!-- VOL 24h total -->
             <div id="totalVol"
                 class="hidden px-3 py-1.5 text-sm bg-white text-gray-800 border-l border-gray-300
                       dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700
@@ -77,7 +68,6 @@
               <span id="totalVolValue" class="tabular-nums">$0</span>
             </div>
 
-            <!-- LATAM SZN -->
             <div id="fgChip"
                 class="hidden px-3 py-1.5 text-sm bg-white text-gray-800 border-l border-gray-300 select-none
                       dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700
@@ -91,10 +81,8 @@
                     <stop offset="100%" stop-color="#22c55e"/>
                   </linearGradient>
                 </defs>
-                <!-- arco -->
                 <path d="M6 40 A34 34 0 0 1 74 40"
                       stroke="url(#fgGrad)" stroke-width="8" fill="none" stroke-linecap="round" opacity="0.9"/>
-                <!-- marcador -->
                 <circle id="fgMarker" cx="6" cy="40" r="6" fill="#ffffff" stroke="currentColor" stroke-width="2"/>
               </svg>
               <div class="flex flex-col leading-none">
@@ -104,7 +92,6 @@
               </div>
             </div>
 
-            <!-- Solicitar listado -->
             <a href="https://forms.gle/ceKKLWemXwLpcXUK8" target="_blank" rel="noopener"
               class="px-3 py-1.5 text-sm bg-white text-indigo-600 font-medium border-l border-gray-300 hover:bg-gray-100
                     dark:bg-gray-800 dark:text-indigo-400 dark:border-gray-700 dark:hover:bg-gray-700">
@@ -190,10 +177,17 @@
           </div>
         </section>
 
+        <!-- HERRAMIENTAS -->
         <section id="tools-section" class="grid gap-4 items-start hidden">
           <div>
             <div class="flex items-center gap-3 mb-3 justify-center sm:justify-start">
               <button id="toolsRefreshBtn" class="px-4 py-2 rounded-xl bg-black text-white font-medium shadow hover:opacity-90 active:opacity-80">Actualizar</button>
+
+              <!-- NUEVO: Botón para abrir el comparador -->
+              <button id="openMcTool" class="px-4 py-2 rounded-xl bg-gray-200 dark:bg-gray-700 dark:text-gray-100 hover:opacity-90">
+                Comparador de Market Cap
+              </button>
+
               <span id="toolsStatus" class="text-sm text-gray-600 dark:text-gray-400"></span>
             </div>
 
@@ -213,6 +207,41 @@
     </div>
   </div>
 
+  <!-- ========= NUEVO: MODAL COMPARADOR MC ========= -->
+  <div id="mcModal" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/50"></div>
+    <div class="relative mx-auto mt-16 w-[95%] max-w-2xl rounded-2xl bg-white dark:bg-gray-800 p-5 shadow-xl">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-lg font-semibold">Comparador de Market Cap</h3>
+        <button id="mcClose" class="w-8 h-8 rounded hover:bg-gray-200 dark:hover:bg-gray-700">✕</button>
+      </div>
+
+      <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
+        Calcula el precio de <strong>A</strong> si tuviera el Market Cap de <strong>B</strong> y viceversa.
+        (Usa MC y, si falta, FDV).
+      </p>
+
+      <div class="grid gap-3 sm:grid-cols-2">
+        <div>
+          <label class="text-xs text-gray-500 dark:text-gray-400">Token A</label>
+          <select id="mcSelectA" class="mt-1 w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-3 py-2"></select>
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 dark:text-gray-400">Token B</label>
+          <select id="mcSelectB" class="mt-1 w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-3 py-2"></select>
+        </div>
+      </div>
+
+      <div class="mt-4 flex items-center gap-2">
+        <button id="mcCalc" class="px-4 py-2 rounded-xl bg-black text-white">Calcular</button>
+        <span id="mcMsg" class="text-sm text-gray-600 dark:text-gray-400"></span>
+      </div>
+
+      <div id="mcOut" class="mt-4 grid gap-3 sm:grid-cols-2"></div>
+    </div>
+  </div>
+  <!-- ========= /MODAL ========= -->
+
   <script>
     // ---------- utilidades comunes ----------
     const USD_QUOTES = ['USD','USDC','USDT','DAI','USD1','USDE','USDX'];
@@ -224,7 +253,6 @@
     const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
     const clampAbs=(x,max)=>Math.min(Math.abs(x||0),max);
 
-    // --- Total MC ---
     const totalMcBox=document.getElementById('totalMc');
     const totalMcValue=document.getElementById('totalMcValue');
     function updateTotalMc(tokensRaw){
@@ -234,7 +262,6 @@
       else{ totalMcBox.classList.add('hidden'); }
     }
 
-    // --- Total Vol 24h ---
     const totalVolBox=document.getElementById('totalVol');
     const totalVolValue=document.getElementById('totalVolValue');
     function updateTotalVol(pairs){
@@ -252,14 +279,13 @@
       }
     }
 
-    // ---------- Fear & Greed helpers ----------
     const fgChip=document.getElementById('fgChip');
     const fgValueEl=document.getElementById('fgValue');
     const fgWordEl=document.getElementById('fgWord');
     const fgMarker=document.getElementById('fgMarker');
     const FG_EMA_KEY='latam_fgi_ema';
     const FG_TS_KEY='latam_fgi_ts';
-    const FG_CACHE_MS=24*60*60*1000; // 24 horas
+    const FG_CACHE_MS=24*60*60*1000;
     const FG_ALPHA=0.30;
 
     const mapClip=(v,a,b,A,B)=>{if(a===b)return(A+B)/2;const t=clamp((v-a)/(b-a),0,1);return A+(B-A)*t;};
@@ -283,7 +309,6 @@
         fgWordEl.textContent=bucket.es;
         fgWordEl.className='text-[11px] font-medium '+bucket.cls;
       }
-      // mueve la aguja (centro 40,40 radio 34)
       const r=34, cx=40, cy=40;
       const rad=Math.PI*(1 - shown/100);
       fgMarker.setAttribute('cx', String(cx + r*Math.cos(rad)));
@@ -354,7 +379,6 @@
       }
     }
 
-    // ---------- Plataforma (Pump / Bonk) ----------
     const PLATFORM_ICONS={
       pump:{primary:'https://unavatar.io/pump.fun',fallback:'https://pump.fun/favicon.ico'},
       bonk:{primary:'https://unavatar.io/bonk.fun',fallback:'https://bonk.fun/favicon.ico'}
@@ -367,7 +391,6 @@
       return null;
     }
 
-    // ---------- coins ----------
     const tbody=document.getElementById('tbody');
     const refreshBtn=document.getElementById('refreshBtn');
     const statusEl=document.getElementById('status');
@@ -451,6 +474,9 @@
         platform:detectPlatform(p.baseToken?.address)
       }));
 
+      // >>> Nuevo: exponer para la herramienta
+      window.__LATAM_TOKENS = tokens;
+
       tokens.sort((a,b)=>((b.mc??b.fdv??0)-(a.mc??a.fdv??0)));
 
       tokens.forEach((t,i)=>{
@@ -459,7 +485,6 @@
         const chg=t.change24; const chgClass=chg==null?'':(chg>=0?'text-green-600':'text-red-500');
         const cap=t.mc??t.fdv; const badge=t.mc!=null?'MC':(t.fdv!=null?'FDV':'—');
 
-        // Logos oficiales (Dexscreener + X) como <img>
         const dexLogo = `<img src="https://dexscreener.com/favicon.png" alt="Dexscreener" class="w-3.5 h-3.5 rounded-sm" referrerpolicy="no-referrer">`;
         const xLogo = `<img src="https://x.com/favicon.ico" alt="X" class="w-3.5 h-3.5 rounded-sm" referrerpolicy="no-referrer">`;
 
@@ -542,12 +567,12 @@
               <div><span class="font-medium">Liquidez:</span> ${t.liq!=null?fmtUsd(t.liq):'—'}</div>
               <div><span class="font-medium">Vol 24h:</span> ${t.volume24!=null?fmtUsd(t.volume24):'—'}</div>
               <div><span class="font-medium">Buy/Sell 24h:</span> ${t.buys24!=null&&t.sells24!=null?`${fmtNum(t.buys24,0)}·${fmtNum(t.sells24,0)}`:'—'}</div>
-              <div><span class="font-medium">Market Cap:</span> ${cap!=null?fmtUsd(cap):'—'} (${badge})</div>
+              <div><span class="font-medium">Market Cap:</span> ${(t.mc??t.fdv)!=null?fmtUsd(t.mc??t.fdv):'—'} (${t.mc!=null?'MC':(t.fdv!=null?'FDV':'—')})</div>
               ${t.fdv!=null?`<div><span class="font-medium">FDV:</span> ${fmtUsd(t.fdv)}</div>`:''}
 
               <div class="flex gap-2 flex-wrap md:col-span-4">
-                ${t.url?`<a href="${t.url}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600 inline-flex items-center gap-2">${dexLogo}<span>Dexscreener</span></a>`:''}
-                ${t.xUrl?`<a href="${t.xUrl}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600 inline-flex items-center gap-2">${xLogo}<span>X/Twitter</span></a>`:''}
+                ${t.url?`<a href="${t.url}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600 inline-flex items-center gap-2"><img src="https://dexscreener.com/favicon.png" class="w-4 h-4 rounded-sm" /> <span>Dexscreener</span></a>`:''}
+                ${t.xUrl?`<a href="${t.xUrl}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600 inline-flex items-center gap-2"><img src="https://x.com/favicon.ico" class="w-4 h-4 rounded-sm" /> <span>X/Twitter</span></a>`:''}
                 ${t.platform?`<a href="${t.platform.url}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600 inline-flex items-center gap-2"><img src="${t.platform.iconPrimary}" onerror="this.onerror=null;this.src='${t.platform.iconFallback}'" class="w-4 h-4 rounded-sm" referrerpolicy="no-referrer"/><span>${t.platform.name}</span></a>`:''}
               </div>
             </div>
@@ -565,7 +590,7 @@
         render(pairs);
         updateTotalMc(pairs);
         updateTotalVol(pairs);
-        updateFearIndex(pairs);           // ahora cachea 24h
+        updateFearIndex(pairs);
         statusEl.textContent=`Actualizado: ${new Date().toLocaleTimeString()} · Auto 60s`;
       }catch(err){
         console.error(err);
@@ -599,7 +624,7 @@
     async function loadNftList(){
       try{
         const r=await fetch('./nfts.json?ts='+Date.now(),{cache:'no-store'});
-        if(!r.ok) throw new Error('No nfts.json ('+r.status+')');
+        if(!r.ok) throw new Error('nfts.json ('+r.status+')');
         const raw=await r.json();
         if(!Array.isArray(raw)) throw new Error('nfts.json debe ser un array');
         return raw.map(it=>({...it,slug:it.slug||slugFromUrl(it.url)||'',supply:toNum(it.supply),floorSOL:toNum(it.floorSOL),listed:toNum(it.listed),vol24hSOL:toNum(it.vol24hSOL)})).filter(it=>it.slug);
@@ -923,19 +948,88 @@
 
     setActiveTab('coins');
 
-    // Botón de tema (persistente)
     (function(){
       const btn=document.getElementById('themeToggle'); if(!btn) return;
       const setTheme=(theme)=>{ document.documentElement.classList.toggle('dark',theme==='dark'); localStorage.setItem('theme',theme); btn.textContent=(theme==='dark')?'☀️':'🌙'; };
       setTheme(document.documentElement.classList.contains('dark')?'dark':'light');
       btn.addEventListener('click',()=>{ const next=document.documentElement.classList.contains('dark')?'light':'dark'; setTheme(next); });
     })();
-  </script>
 
+    // ======= NUEVO: Lógica del Comparador MC =======
+    const mcModal = document.getElementById('mcModal');
+    const mcOpen  = document.getElementById('openMcTool');
+    const mcClose = document.getElementById('mcClose');
+    const selA = document.getElementById('mcSelectA');
+    const selB = document.getElementById('mcSelectB');
+    const mcCalcBtn = document.getElementById('mcCalc');
+    const mcMsg = document.getElementById('mcMsg');
+    const mcOut = document.getElementById('mcOut');
+
+    function capOf(t){ return (typeof t?.mc==='number' ? t.mc : (typeof t?.fdv==='number' ? t.fdv : null)); }
+
+    function populateMcSelects(){
+      const list=(window.__LATAM_TOKENS||[]).filter(t=>t && t.priceUsd!=null && capOf(t)!=null);
+      const toOpt = (t,idx)=>`<option value="${idx}">${t.symbol || t.name} · ${fmtUsdSmart(t.priceUsd)} · ${fmtUsdCompact(capOf(t))}</option>`;
+      selA.innerHTML = list.map(toOpt).join('');
+      selB.innerHTML = list.map(toOpt).join('');
+      selA.dataset.len = list.length;
+      selB.dataset.len = list.length;
+      selA.selectedIndex = 0;
+      selB.selectedIndex = Math.min(1, list.length-1);
+    }
+
+    function computeMc(){
+      const list=(window.__LATAM_TOKENS||[]).filter(t=>t && t.priceUsd!=null && capOf(t)!=null);
+      if(!list.length || !Number.isFinite(selA.selectedIndex) || !Number.isFinite(selB.selectedIndex)){
+        mcMsg.textContent='No hay datos suficientes (necesitas precio y MC/FDV).';
+        mcOut.innerHTML=''; return;
+      }
+      const A=list[selA.selectedIndex], B=list[selB.selectedIndex];
+      if(!A||!B){ mcMsg.textContent='Selecciona ambos tokens.'; mcOut.innerHTML=''; return; }
+
+      const pA=A.priceUsd, pB=B.priceUsd;
+      const mcA=capOf(A), mcB=capOf(B);
+
+      // Precio de A con MC de B: pA' = pA * (mcB/mcA)
+      const pAeq = pA * (mcB / mcA);
+      const chgA = ((pAeq - pA)/pA) * 100;
+
+      // Precio de B con MC de A
+      const pBeq = pB * (mcA / mcB);
+      const chgB = ((pBeq - pB)/pB) * 100;
+
+      mcMsg.textContent='';
+      mcOut.innerHTML = `
+        <div class="p-3 rounded-xl border border-gray-300 dark:border-gray-700">
+          <div class="text-sm mb-1"><strong>${A.symbol||A.name}</strong> (actual: ${fmtUsdSmart(pA)}, MC: ${fmtUsd(mcA)})</div>
+          <div class="text-base font-semibold">Si ${A.symbol||A.name} tuviera el MC de ${B.symbol||B.name} → <span class="tabular-nums">${fmtUsdSmart(pAeq)}</span></div>
+          <div class="${chgA>=0?'text-green-500':'text-red-500'} text-sm mt-1">Cambio: ${fmtNum(chgA,2)}%</div>
+        </div>
+        <div class="p-3 rounded-xl border border-gray-300 dark:border-gray-700">
+          <div class="text-sm mb-1"><strong>${B.symbol||B.name}</strong> (actual: ${fmtUsdSmart(pB)}, MC: ${fmtUsd(mcB)})</div>
+          <div class="text-base font-semibold">Si ${B.symbol||B.name} tuviera el MC de ${A.symbol||A.name} → <span class="tabular-nums">${fmtUsdSmart(pBeq)}</span></div>
+          <div class="${chgB>=0?'text-green-500':'text-red-500'} text-sm mt-1">Cambio: ${fmtNum(chgB,2)}%</div>
+        </div>
+      `;
+    }
+
+    mcOpen?.addEventListener('click', ()=>{
+      populateMcSelects();
+      mcOut.innerHTML='';
+      mcMsg.textContent = (Number(selA.dataset.len||0) < 2) ? 'Consejo: agrega más tokens a tokens.json para comparar.' : '';
+      mcModal.classList.remove('hidden');
+    });
+    mcClose?.addEventListener('click', ()=> mcModal.classList.add('hidden'));
+    mcModal?.addEventListener('click', (e)=>{ if(e.target===mcModal) mcModal.classList.add('hidden'); });
+    mcCalcBtn?.addEventListener('click', computeMc);
+    // ======= /Comparador MC =======
+  </script>
   <!-- 🌐 Cloudflare Web Analytics -->
   <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"c7335ec6ec0c4d8ba06040d145c5166f"}'></script>
 </body>
 </html>
+
+
 
 
 
