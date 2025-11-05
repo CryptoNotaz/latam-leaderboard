@@ -47,7 +47,7 @@
       </aside>
 
       <main>
-        <!-- Top chips (igual que antes) -->
+        <!-- Top chips -->
         <div class="mb-4 flex items-center justify-between gap-2">
           <div class="hidden sm:inline-flex items-stretch rounded-lg overflow-hidden border border-gray-300 dark:border-gray-700">
             <div id="totalMc"
@@ -182,17 +182,11 @@
           <div>
             <div class="flex items-center gap-3 mb-3 justify-center sm:justify-start">
               <button id="toolsRefreshBtn" class="px-4 py-2 rounded-xl bg-black text-white font-medium shadow hover:opacity-90 active:opacity-80">Actualizar</button>
-
-              <!-- Botón para abrir el comparador -->
-              <button id="openMcTool" class="px-4 py-2 rounded-xl bg-gray-200 dark:bg-gray-700 dark:text-gray-100 hover:opacity-90">
-                Comparador de Market Cap
-              </button>
-
               <span id="toolsStatus" class="text-sm text-gray-600 dark:text-gray-400"></span>
             </div>
 
             <div id="toolsList" class="grid gap-3 sm:grid-cols-2">
-              <!-- Cards dinámicas -->
+              <!-- Aquí se renderiza el comparador como card + las demás herramientas -->
             </div>
           </div>
         </section>
@@ -207,7 +201,7 @@
     </div>
   </div>
 
-  <!-- ========= MODAL COMPARADOR MC (NUEVO LOOK + SWAP) ========= -->
+  <!-- ========= MODAL COMPARADOR MC ========= -->
   <div id="mcModal" class="fixed inset-0 z-50 hidden">
     <div class="absolute inset-0 bg-black/50"></div>
     <div class="relative mx-auto mt-12 w-[95%] max-w-3xl rounded-2xl bg-white dark:bg-gray-800 p-6 shadow-2xl">
@@ -219,7 +213,6 @@
         <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Usa MC y, si falta, FDV.</p>
       </div>
 
-      <!-- Selectores + botón swap -->
       <div class="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] items-center gap-3">
         <div>
           <label class="text-xs text-gray-500 dark:text-gray-400">Select A</label>
@@ -243,7 +236,6 @@
         </div>
       </div>
 
-      <!-- Acción -->
       <div class="mt-4 flex items-center gap-2 justify-center">
         <button id="mcCalc" class="px-5 py-2.5 rounded-xl bg-black text-white font-semibold shadow hover:opacity-90">
           Calcular
@@ -251,7 +243,6 @@
         <span id="mcMsg" class="text-sm text-gray-600 dark:text-gray-400"></span>
       </div>
 
-      <!-- Resultado -->
       <div id="mcOut" class="mt-5"></div>
 
       <div class="mt-5 text-center">
@@ -872,6 +863,25 @@
 
     function renderTools(items){
       toolsListEl.innerHTML='';
+
+      // --- Card del COMPARADOR como herramienta ---
+      const cmp=document.createElement('button');
+      cmp.type='button';
+      cmp.id='openMcTool';
+      cmp.className='text-left p-4 bg-white dark:bg-gray-800 rounded-xl shadow hover:opacity-90 transition flex gap-3 items-start w-full';
+      cmp.innerHTML=`
+        <div class="w-8 h-8 rounded-md grid place-items-center bg-gray-100 dark:bg-gray-700">
+          <svg viewBox="0 0 24 24" class="w-5 h-5" fill="currentColor" aria-hidden="true">
+            <path d="M3 5h18v2H3V5zm3 6h12v2H6v-2zm-3 6h18v2H3v-2z"/>
+          </svg>
+        </div>
+        <div class="min-w-0">
+          <div class="font-semibold truncate">Comparador de Market Cap</div>
+          <p class="text-sm text-gray-500 dark:text-gray-400">Calcula precio de A con el MC de B (usa MC/FDV).</p>
+        </div>`;
+      toolsListEl.appendChild(cmp);
+
+      // Resto de herramientas
       items.forEach(it=>{
         const a=document.createElement('a');
         a.href=it.url; a.target='_blank'; a.rel='noopener';
@@ -976,9 +986,9 @@
       btn.addEventListener('click',()=>{ const next=document.documentElement.classList.contains('dark')?'light':'dark'; setTheme(next); });
     })();
 
-    // ======= Lógica del Comparador MC (NUEVO con SWAP) =======
+    // ======= Lógica del Comparador MC =======
     const mcModal = document.getElementById('mcModal');
-    const mcOpen  = document.getElementById('openMcTool');
+    const mcOpen  = document.getElementById('openMcTool'); // ahora es la card
     const mcClose = document.getElementById('mcClose');
     const selA = document.getElementById('mcSelectA');
     const selB = document.getElementById('mcSelectB');
@@ -1022,12 +1032,8 @@
       const chgA = ((pAeq - pA)/pA) * 100;
       const chgB = ((pBeq - pB)/pB) * 100;
 
-      // ==== NUEVO: color dinámico del multiplicador ====
       const ratioA = pAeq / pA;
-      const ratioClass = ratioA > 1 ? 'text-emerald-600'
-                         : (ratioA < 1 ? 'text-red-500'
-                                        : 'text-yellow-500');
-      // ================================================
+      const ratioClass = ratioA > 1 ? 'text-emerald-600' : (ratioA < 1 ? 'text-red-500' : 'text-yellow-500');
 
       const rA = getRankByCap(list,A);
       const rB = getRankByCap(list,B);
@@ -1091,11 +1097,13 @@
     }
 
     // abrir/cerrar + calcular + swap
-    document.getElementById('openMcTool')?.addEventListener('click', ()=>{
-      populateMcSelects();
-      mcOut.innerHTML='';
-      mcMsg.textContent = (Number(selA.dataset.len||0) < 2) ? 'Consejo: agrega más tokens a tokens.json para comparar.' : '';
-      mcModal.classList.remove('hidden');
+    document.addEventListener('click',(e)=>{
+      if(e.target.closest('#openMcTool')){
+        populateMcSelects();
+        mcOut.innerHTML='';
+        mcMsg.textContent = (Number(selA.dataset.len||0) < 2) ? 'Consejo: agrega más tokens a tokens.json para comparar.' : '';
+        mcModal.classList.remove('hidden');
+      }
     });
     mcClose?.addEventListener('click', ()=> mcModal.classList.add('hidden'));
     mcModal?.addEventListener('click', (e)=>{ if(e.target===mcModal) mcModal.classList.add('hidden'); });
@@ -1106,7 +1114,7 @@
       const iA = selA.selectedIndex;
       selA.selectedIndex = selB.selectedIndex;
       selB.selectedIndex = iA;
-      computeMc(); // recalcula al instante tras el swap
+      computeMc();
     });
     // ======= /Comparador MC =======
   </script>
@@ -1114,6 +1122,7 @@
   <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"c7335ec6ec0c4d8ba06040d145c5166f"}'></script>
 </body>
 </html>
+
 
 
 
