@@ -544,14 +544,14 @@
           <td class="w-6 px-2 py-2 sm:px-4 sm:py-3 text-gray-500 dark:text-gray-400">${i+1}</td>
           <td class="px-2 py-2 sm:px-4 sm:py-3">
             <div class="flex items-center gap-1.5 sm:gap-2 min-w-0">
-              ${t.imageUrl?`<img src="${t.imageUrl}" class="w-5 h-5 rounded-full"/>`:''}
+              ${t.imageUrl?`<img src="${t.imageUrl}" class="w-5 h-5 rounded-full" alt="">`:''}
               <span class="font-semibold truncate lp-copy" data-copy="${t.address||''}" title="Mantén presionado para copiar CA">${t.symbol||t.name}</span>
               <span class="inline-flex text-[10px] px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-700">${t.chainId}</span>
 
-              ${t.url?`<a href="${t.url}" class="hidden md:inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200 dark:hover:bg-gray-700" title="Ver en Dexscreener">${dexLogo}</a>`:''}
-              ${t.xUrl?`<a href="${t.xUrl}" class="hidden md:inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200 dark:hover:bg-gray-700" title="X / Twitter">${xLogo}</a>`:''}
-              ${t.igUrl?`<a href="${t.igUrl}" class="hidden md:inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200 dark:hover:bg-gray-700" title="Instagram" target="_blank" rel="noopener">${igLogo}</a>`:''}
-              ${t.ttUrl?`<a href="${t.ttUrl}" class="hidden md:inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200 dark:hover:bg-gray-700" title="TikTok" target="_blank" rel="noopener">${ttLogo}</a>`:''}
+              ${t.url?`<a href="${t.url}" target="_blank" rel="noopener" class="hidden md:inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200 dark:hover:bg-gray-700" title="Ver en Dexscreener">${dexLogo}</a>`:''}
+              ${t.xUrl?`<a href="${t.xUrl}" target="_blank" rel="noopener" class="hidden md:inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200 dark:hover:bg-gray-700" title="X / Twitter">${xLogo}</a>`:''}
+              ${t.igUrl?`<a href="${t.igUrl}" target="_blank" rel="noopener" class="hidden md:inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200 dark:hover:bg-gray-700" title="Instagram">${igLogo}</a>`:''}
+              ${t.ttUrl?`<a href="${t.ttUrl}" target="_blank" rel="noopener" class="hidden md:inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200 dark:hover:bg-gray-700" title="TikTok">${ttLogo}</a>`:''}
               ${t.platform?`
                 <a href="${t.platform.url}" target="_blank" rel="noopener" class="hidden md:inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200 dark:hover:bg-gray-700" title="${t.platform.name}">
                   <img src="${t.platform.iconPrimary}" onerror="this.onerror=null;this.src='${t.platform.iconFallback}'" alt="${t.platform.name}" class="w-3.5 h-3.5 rounded-sm" referrerpolicy="no-referrer"/>
@@ -593,7 +593,7 @@
 
           <td class="w-24 sm:w-36 px-2 py-2 sm:px-4 sm:py-3 text-right whitespace-nowrap">
             <span class="md:hidden">${cap!=null?fmtUsdCompact(cap):'—'}</span>
-            <span class="hidden md:inline">${cap!=null?fmtUsd(cap):'—'} <span class="ml-1 text:[10px] px-1 py-0.5 rounded bg-gray-100 dark:bg-gray-700 border dark:border-gray-600">${badge}</span></span>
+            <span class="hidden md:inline">${cap!=null?fmtUsd(cap):'—'} <span class="ml-1 text-[10px] px-1 py-0.5 rounded bg-gray-100 dark:bg-gray-700 border dark:border-gray-600">${badge}</span></span>
           </td>`;
         tbody.appendChild(tr);
 
@@ -603,7 +603,7 @@
           <td colspan="9" class="px-4 py-3">
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs text-gray-700 dark:text-gray-300">
               <div class="md:col-span-4 flex items-center gap-2 text-sm">
-                ${t.imageUrl?`<img src="${t.imageUrl}" class="w-5 h-5 rounded-full"/>`:''}
+                ${t.imageUrl?`<img src="${t.imageUrl}" class="w-5 h-5 rounded-full" alt="">`:''}
                 <span class="font-semibold">${t.name||'—'}</span>
                 <span class="text-xs text-gray-500 dark:text-gray-400 uppercase">${t.symbol}</span>
                 <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-700">${t.chainId}</span>
@@ -611,7 +611,7 @@
 
               <div class="md:col-span-4 flex flex-wrap items-center gap-2">
                 <span class="font-medium">CA:</span>
-                <code class="font-mono text-xs sm:text[13px] break-all md:whitespace-nowrap select-all">${t.address||'—'}</code>
+                <code class="font-mono text-xs sm:text-[13px] break-all md:whitespace-nowrap select-all">${t.address||'—'}</code>
                 <button class="copy relative inline-flex items-center gap-1 border rounded px-2 py-0.5 ml-1 dark:border-gray-600" data-copy="${t.address||''}">
                   Copiar
                   <span class="tooltip absolute top-7 right-0 bg-black text-white text-[10px] px-2 py-0.5 rounded opacity-0 pointer-events-none transition-opacity">Copiado</span>
@@ -625,11 +625,11 @@
               ${t.fdv!=null?`<div><span class="font-medium">FDV:</span> ${fmtUsd(t.fdv)}</div>`:''}
 
               <div class="flex gap-2 flex-wrap md:col-span-4">
-                ${t.url?`<a href="${t.url}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600 inline-flex items-center gap-2"><img src="${ICONS.dex}" class="w-4 h-4 rounded-sm" /> <span>Dexscreener</span></a>`:''}
-                ${t.xUrl?`<a href="${t.xUrl}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600 inline-flex items-center gap-2"><img src="${ICONS.x}" class="w-4 h-4 rounded-sm" /> <span>X/Twitter</span></a>`:''}
-                ${t.igUrl?`<a href="${t.igUrl}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600 inline-flex items-center gap-2"><img src="${ICONS.ig}" class="w-4 h-4 rounded-sm" /> <span>Instagram</span></a>`:''}
-                ${t.ttUrl?`<a href="${t.ttUrl}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600 inline-flex items-center gap-2"><img src="${ICONS.tt}" class="w-4 h-4 rounded-sm" /> <span>TikTok</span></a>`:''}
-                ${t.platform?`<a href="${t.platform.url}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600 inline-flex items-center gap-2"><img src="${t.platform.iconPrimary}" onerror="this.onerror=null;this.src='${t.platform.iconFallback}'" class="w-4 h-4 rounded-sm" referrerpolicy="no-referrer"/><span>${t.platform.name}</span></a>`:''}
+                ${t.url?`<a href="${t.url}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600 inline-flex items-center gap-2"><img src="${ICONS.dex}" class="w-4 h-4 rounded-sm" alt=""> <span>Dexscreener</span></a>`:''}
+                ${t.xUrl?`<a href="${t.xUrl}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600 inline-flex items-center gap-2"><img src="${ICONS.x}" class="w-4 h-4 rounded-sm" alt=""> <span>X/Twitter</span></a>`:''}
+                ${t.igUrl?`<a href="${t.igUrl}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600 inline-flex items-center gap-2"><img src="${ICONS.ig}" class="w-4 h-4 rounded-sm" alt=""> <span>Instagram</span></a>`:''}
+                ${t.ttUrl?`<a href="${t.ttUrl}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600 inline-flex items-center gap-2"><img src="${ICONS.tt}" class="w-4 h-4 rounded-sm" alt=""> <span>TikTok</span></a>`:''}
+                ${t.platform?`<a href="${t.platform.url}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600 inline-flex items-center gap-2"><img src="${t.platform.iconPrimary}" onerror="this.onerror=null;this.src='${t.platform.iconFallback}'" class="w-4 h-4 rounded-sm" referrerpolicy="no-referrer" alt=""><span>${t.platform.name}</span></a>`:''}
               </div>
             </div>
           </td>`;
@@ -732,7 +732,7 @@
           <td class="w-6 px-2 py-2 sm:px-4 sm:py-3 text-gray-500 dark:text-gray-400">${i+1}</td>
           <td class="px-2 py-2 sm:px-4 sm:py-3">
             <div class="flex items-center gap-2 min-w-0">
-              ${c.image?`<img src="${c.image}" class="w-5 h-5 rounded"/>`:''}
+              ${c.image?`<img src="${c.image}" class="w-5 h-5 rounded" alt="">`:''}
               <span class="font-semibold truncate">${c.name}</span>
             </div>
           </td>
@@ -750,7 +750,7 @@
           <td colspan="6" class="px-4 py-3">
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs text-gray-700 dark:text-gray-300">
               <div class="md:col-span-4 flex items-center gap-2 text-sm">
-                ${c.image?`<img src="${c.image}" class="w-6 h-6 rounded"/>`:''}
+                ${c.image?`<img src="${c.image}" class="w-6 h-6 rounded" alt="">`:''}
                 <span class="font-semibold">${c.name}</span>
                 <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-700">solana</span>
               </div>
@@ -829,7 +829,7 @@
           <td class="w-6 px-2 py-2 sm:px-4 sm:py-3 text-gray-500 dark:text-gray-400">${i+1}</td>
           <td class="px-2 py-2 sm:px-4 sm:py-3">
             <div class="flex items-center gap-2 min-w-0">
-              ${c.avatar?`<img src="${c.avatar}" class="w-6 h-6 rounded-full"/>`:''}
+              ${c.avatar?`<img src="${c.avatar}" class="w-6 h-6 rounded-full" alt="">`:''}
               <span class="font-semibold truncate">${c.name}</span>
               ${c.x?`<a class="inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200 dark:hover:bg-gray-700" target="_blank" rel="noopener" href="${c.x}" title="Perfil en X">
                 <img src="https://abs.twimg.com/favicons/twitter.2.ico" class="w-3.5 h-3.5 rounded-sm" alt="X">
@@ -844,7 +844,7 @@
         det.className='details hidden bg-white/70 dark:bg-gray-800/70';
         det.innerHTML=`
           <td colspan="4" class="px-4 py-3">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xx s text-gray-700 dark:text-gray-300">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs text-gray-700 dark:text-gray-300">
               <div class="md:col-span-3">${c.bio?c.bio:''}</div>
               <div><span class="font-medium">Seguidores totales:</span> ${fmtNum(total||c.followers?.x||0,0)}</div>
               <div><span class="font-medium">Roles:</span> ${(c.roles||[]).join(', ')||'—'}</div>
@@ -1032,7 +1032,6 @@
 
     // ======= Lógica del Comparador MC =======
     const mcModal = document.getElementById('mcModal');
-    const mcOpen  = document.getElementById('openMcTool'); // ahora es la card
     const mcClose = document.getElementById('mcClose');
     const selA = document.getElementById('mcSelectA');
     const selB = document.getElementById('mcSelectB');
@@ -1087,10 +1086,10 @@
       mcOut.innerHTML = `
         <div class="mx-auto max-w-2xl rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-5 shadow">
           <div class="flex items-center gap-2 text-sm mb-2">
-            <div class="w-5 h-5 rounded-full overflow-hidden">${A.imageUrl?`<img src="${A.imageUrl}" class="w-5 h-5">`:''}</div>
+            <div class="w-5 h-5 rounded-full overflow-hidden">${A.imageUrl?`<img src="${A.imageUrl}" class="w-5 h-5" alt="">`:''}</div>
             <span class="font-semibold">${A.symbol||A.name}</span>
             <span class="text-gray-500">precio con el market cap de</span>
-            <div class="w-5 h-5 rounded-full overflow-hidden">${B.imageUrl?`<img src="${B.imageUrl}" class="w-5 h-5">`:''}</div>
+            <div class="w-5 h-5 rounded-full overflow-hidden">${B.imageUrl?`<img src="${B.imageUrl}" class="w-5 h-5" alt="">`:''}</div>
             <span class="font-semibold">${B.symbol||B.name}</span>
           </div>
 
@@ -1166,6 +1165,7 @@
   <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"c7335ec6ec0c4d8ba06040d145c5166f"}'></script>
 </body>
 </html>
+
 
 
 
