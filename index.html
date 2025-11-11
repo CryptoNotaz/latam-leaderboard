@@ -376,7 +376,8 @@
           return {ret,mc,liq};
         }).filter(x=>Number.isFinite(x.ret)&&x.mc>0);
 
-        if(items.length<3){ fgChip.classList.add('hidden'); return; }
+        // 🔧 Cambio: no ocultar a menos que no haya ningún token válido
+        if(items.length<1){ fgChip.classList.add('hidden'); return; }
 
         const winners=items.filter(x=>x.ret>0).length;
         const breadthScore=(winners/items.length)*100;
@@ -441,6 +442,20 @@
       const byUrl=socials.find(s=>/twitter\.com|x\.com/i.test(s?.url||'')); return byUrl?.url||null;
     }
 
+    // 🔧 NUEVO: parsear X/IG/TT directo de Dexscreener (info.socials)
+    function parseSocials(info){
+      const out = { x:null, ig:null, tt:null };
+      const arr = Array.isArray(info?.socials) ? info.socials : [];
+      for (const s of arr){
+        const type = String(s?.type||s?.platform||'').toLowerCase();
+        const url  = s?.url || '';
+        if (/twitter|x/.test(type) || /x\.com|twitter\.com/i.test(url)) out.x = url;
+        if (/instagram/.test(type) || /instagram\.com/i.test(url))      out.ig = url;
+        if (/tiktok/.test(type) || /tiktok\.com/i.test(url))            out.tt = url;
+      }
+      return out;
+    }
+
     async function loadTokenList(){
       try{
         const res=await fetch('./tokens.json?ts='+Date.now(),{cache:'no-store'});
@@ -502,6 +517,7 @@
       const tokens=rows.map(p=>{
         const addr=(p.baseToken?.address||'').toLowerCase();
         const social = socialsMap.get(addr) || {};
+        const sDex = parseSocials(p.info); // <— leer socials de Dexscreener
         return {
           name:p.baseToken?.name||'—',
           symbol:(p.baseToken?.symbol||'').toUpperCase(),
@@ -515,12 +531,14 @@
           volume24:(p.volume?.h24 ?? null),
           buys24:(p.txns?.h24?.buys ?? null),
           sells24:(p.txns?.h24?.sells ?? null),
-          xUrl:getXUrl(p.info),
+          // X primero desde Dex, luego fallback al helper previo:
+          xUrl: sDex.x || getXUrl(p.info),
           chainId:p.chainId,
           url:p.url,
           platform:detectPlatform(p.baseToken?.address),
-          igUrl: social.instagram || null,
-          ttUrl: social.tiktok || null
+          // IG/TT: primero Dex, luego socials.json
+          igUrl: sDex.ig || social.instagram || null,
+          ttUrl: sDex.tt || social.tiktok   || null
         };
       });
 
@@ -1165,15 +1183,3 @@
   <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"c7335ec6ec0c4d8ba06040d145c5166f"}'></script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
