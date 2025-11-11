@@ -100,6 +100,32 @@
           </div>
         </div>
 
+        <!-- NUEVO: Tarjetas “En tendencia” y “Ganadores principales” -->
+        <div id="top-cards" class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4 hidden">
+          <!-- En tendencia -->
+          <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow p-4">
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <span class="text-lg">🔥</span>
+                <h3 class="font-semibold">En tendencia</h3>
+              </div>
+              <span class="text-xs text-indigo-600 dark:text-indigo-400">Ver más</span>
+            </div>
+            <ul id="trendList" class="divide-y divide-gray-200 dark:divide-gray-700"></ul>
+          </div>
+          <!-- Ganadores principales -->
+          <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow p-4">
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <span class="text-lg">🚀</span>
+                <h3 class="font-semibold">Ganadores principales</h3>
+              </div>
+              <span class="text-xs text-indigo-600 dark:text-indigo-400">Ver más</span>
+            </div>
+            <ul id="gainersList" class="divide-y divide-gray-200 dark:divide-gray-700"></ul>
+          </div>
+        </div>
+
         <!-- COINS -->
         <section id="coins-section" class="grid gap-4 items-start">
           <div>
@@ -497,6 +523,40 @@
       tt: 'https://www.tiktok.com/favicon.ico'
     };
 
+    // ---- NUEVO: Render de tarjetas “trend / gainers” ----
+    const topCardsEl = document.getElementById('top-cards');
+    const trendListEl = document.getElementById('trendList');
+    const gainersListEl = document.getElementById('gainersList');
+
+    function renderTopCardsFromTokens(tokens){
+      if(!tokens || !tokens.length){ topCardsEl.classList.add('hidden'); return; }
+      const trend = [...tokens].sort((a,b)=>(b.volume24??0)-(a.volume24??0)).slice(0,3); // top por volumen
+      const gainers = [...tokens].filter(t=>typeof t.change24==='number').sort((a,b)=>b.change24-a.change24).slice(0,3);
+
+      const li = (t)=> {
+        const ch=t.change24;
+        const cls = ch>=0 ? 'text-emerald-600' : 'text-red-500';
+        return `
+          <li class="py-2 first:pt-0 last:pb-0">
+            <div class="flex items-center justify-between gap-3">
+              <div class="flex items-center gap-2 min-w-0">
+                ${t.imageUrl?`<img src="${t.imageUrl}" class="w-5 h-5 rounded-full" alt="">`:''}
+                <span class="truncate font-medium">${t.symbol||t.name}</span>
+              </div>
+              <div class="flex items-center gap-3 shrink-0">
+                <span class="text-sm tabular-nums">${t.priceUsd!=null?fmtUsdSmart(t.priceUsd):'—'}</span>
+                <span class="text-sm ${cls} tabular-nums">${ch!=null?fmtNum(ch,2)+'%':'—'}</span>
+              </div>
+            </div>
+          </li>`;
+      };
+
+      trendListEl.innerHTML = trend.map(li).join('');
+      gainersListEl.innerHTML = gainers.map(li).join('');
+      topCardsEl.classList.remove('hidden');
+    }
+    // -----------------------------------------------------
+
     function render(rows, socialsMap){
       tbody.innerHTML='';
       const tokens=rows.map(p=>{
@@ -524,7 +584,7 @@
         };
       });
 
-      // Exponer para la herramienta
+      // Exponer para la herramienta y tarjetas
       window.__LATAM_TOKENS = tokens;
 
       tokens.sort((a,b)=>((b.mc??b.fdv??0)-(a.mc??a.fdv??0)));
@@ -635,13 +695,16 @@
           </td>`;
         tbody.appendChild(det);
       });
+
+      // Llenar tarjetas resumidas
+      renderTopCardsFromTokens(tokens);
     }
 
     async function refresh(){
       try{
         statusEl.textContent='Cargando…';
         const list=await loadTokenList();
-        if(!list.length){ tbody.innerHTML=''; statusEl.textContent='Agrega tokens a tokens.json'; return; }
+        if(!list.length){ tbody.innerHTML=''; statusEl.textContent='Agrega tokens a tokens.json'; topCardsEl.classList.add('hidden'); return; }
         const [pairs, socials] = await Promise.all([fetchAll(list), loadSocials()]);
         render(pairs, socials);
         updateTotalMc(pairs);
@@ -651,6 +714,7 @@
       }catch(err){
         console.error(err);
         statusEl.textContent='Error al actualizar.';
+        topCardsEl.classList.add('hidden');
       }
     }
 
@@ -1166,6 +1230,7 @@
   <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"c7335ec6ec0c4d8ba06040d145c5166f"}'></script>
 </body>
 </html>
+
 
 
 
