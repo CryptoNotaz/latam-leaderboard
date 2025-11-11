@@ -265,6 +265,30 @@
     const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
     const clampAbs=(x,max)=>Math.min(Math.abs(x||0),max);
 
+    // === NUEVO: carga de socials.json ===
+    async function loadSocials(){
+      try{
+        const r = await fetch('./socials.json?ts='+Date.now(), {cache:'no-store'});
+        if(!r.ok) throw new Error('No socials.json');
+        const arr = await r.json();
+        const map = new Map();
+        (Array.isArray(arr)?arr:[]).forEach(it=>{
+          const chain=(it.chain||'solana').toLowerCase();
+          const addr=String(it.address||'').toLowerCase();
+          if(!addr) return;
+          map.set(addr, {
+            instagram: it.instagram || it.ig || null,
+            tiktok: it.tiktok || it.tt || null,
+            chain
+          });
+        });
+        return map;
+      }catch(e){
+        console.warn('Sin socials.json (opcional)', e);
+        return new Map();
+      }
+    }
+
     const totalMcBox=document.getElementById('totalMc');
     const totalMcValue=document.getElementById('totalMcValue');
     function updateTotalMc(tokensRaw){
@@ -465,26 +489,40 @@
       return chooseBestPairs(arrays.flat());
     }
 
-    function render(rows){
+    // === NUEVO: íconos de redes ===
+    const ICONS = {
+      dex: 'https://dexscreener.com/favicon.png',
+      x: 'https://x.com/favicon.ico',
+      ig: 'https://www.instagram.com/favicon.ico',
+      tt: 'https://www.tiktok.com/favicon.ico'
+    };
+
+    function render(rows, socialsMap){
       tbody.innerHTML='';
-      const tokens=rows.map(p=>({
-        name:p.baseToken?.name||'—',
-        symbol:(p.baseToken?.symbol||'').toUpperCase(),
-        address:p.baseToken?.address||'',
-        imageUrl:p.info?.imageUrl||'',
-        priceUsd:p.priceUsd?Number(p.priceUsd):null,
-        mc:(typeof p.marketCap==='number'?p.marketCap:null),
-        fdv:(typeof p.fdv==='number'?p.fdv:null),
-        liq:p.liquidity?.usd??null,
-        change24:p.priceChange?.h24??null,
-        volume24:(p.volume?.h24 ?? null),
-        buys24:(p.txns?.h24?.buys ?? null),
-        sells24:(p.txns?.h24?.sells ?? null),
-        xUrl:getXUrl(p.info),
-        chainId:p.chainId,
-        url:p.url,
-        platform:detectPlatform(p.baseToken?.address)
-      }));
+      const tokens=rows.map(p=>{
+        const addr=(p.baseToken?.address||'').toLowerCase();
+        const social = socialsMap.get(addr) || {};
+        return {
+          name:p.baseToken?.name||'—',
+          symbol:(p.baseToken?.symbol||'').toUpperCase(),
+          address:p.baseToken?.address||'',
+          imageUrl:p.info?.imageUrl||'',
+          priceUsd:p.priceUsd?Number(p.priceUsd):null,
+          mc:(typeof p.marketCap==='number'?p.marketCap:null),
+          fdv:(typeof p.fdv==='number'?p.fdv:null),
+          liq:p.liquidity?.usd??null,
+          change24:p.priceChange?.h24??null,
+          volume24:(p.volume?.h24 ?? null),
+          buys24:(p.txns?.h24?.buys ?? null),
+          sells24:(p.txns?.h24?.sells ?? null),
+          xUrl:getXUrl(p.info),
+          chainId:p.chainId,
+          url:p.url,
+          platform:detectPlatform(p.baseToken?.address),
+          igUrl: social.instagram || null,
+          ttUrl: social.tiktok || null
+        };
+      });
 
       // Exponer para la herramienta
       window.__LATAM_TOKENS = tokens;
@@ -497,8 +535,10 @@
         const chg=t.change24; const chgClass=chg==null?'':(chg>=0?'text-green-600':'text-red-500');
         const cap=t.mc??t.fdv; const badge=t.mc!=null?'MC':(t.fdv!=null?'FDV':'—');
 
-        const dexLogo = `<img src="https://dexscreener.com/favicon.png" alt="Dexscreener" class="w-3.5 h-3.5 rounded-sm" referrerpolicy="no-referrer">`;
-        const xLogo = `<img src="https://x.com/favicon.ico" alt="X" class="w-3.5 h-3.5 rounded-sm" referrerpolicy="no-referrer">`;
+        const dexLogo = `<img src="${ICONS.dex}" alt="Dexscreener" class="w-3.5 h-3.5 rounded-sm" referrerpolicy="no-referrer">`;
+        const xLogo   = `<img src="${ICONS.x}"   alt="X"           class="w-3.5 h-3.5 rounded-sm" referrerpolicy="no-referrer">`;
+        const igLogo  = `<img src="${ICONS.ig}"  alt="Instagram"  class="w-3.5 h-3.5 rounded-sm" referrerpolicy="no-referrer">`;
+        const ttLogo  = `<img src="${ICONS.tt}"  alt="TikTok"      class="w-3.5 h-3.5 rounded-sm" referrerpolicy="no-referrer">`;
 
         tr.innerHTML=`
           <td class="w-6 px-2 py-2 sm:px-4 sm:py-3 text-gray-500 dark:text-gray-400">${i+1}</td>
@@ -510,6 +550,8 @@
 
               ${t.url?`<a href="${t.url}" class="hidden md:inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200 dark:hover:bg-gray-700" title="Ver en Dexscreener">${dexLogo}</a>`:''}
               ${t.xUrl?`<a href="${t.xUrl}" class="hidden md:inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200 dark:hover:bg-gray-700" title="X / Twitter">${xLogo}</a>`:''}
+              ${t.igUrl?`<a href="${t.igUrl}" class="hidden md:inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200 dark:hover:bg-gray-700" title="Instagram" target="_blank" rel="noopener">${igLogo}</a>`:''}
+              ${t.ttUrl?`<a href="${t.ttUrl}" class="hidden md:inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200 dark:hover:bg-gray-700" title="TikTok" target="_blank" rel="noopener">${ttLogo}</a>`:''}
               ${t.platform?`
                 <a href="${t.platform.url}" target="_blank" rel="noopener" class="hidden md:inline-flex items-center justify-center w-6 h-6 rounded hover:bg-gray-200 dark:hover:bg-gray-700" title="${t.platform.name}">
                   <img src="${t.platform.iconPrimary}" onerror="this.onerror=null;this.src='${t.platform.iconFallback}'" alt="${t.platform.name}" class="w-3.5 h-3.5 rounded-sm" referrerpolicy="no-referrer"/>
@@ -569,7 +611,7 @@
 
               <div class="md:col-span-4 flex flex-wrap items-center gap-2">
                 <span class="font-medium">CA:</span>
-                <code class="font-mono text-xs sm:text-[13px] break-all md:whitespace-nowrap select-all">${t.address||'—'}</code>
+                <code class="font-mono text-xs sm:text[13px] break-all md:whitespace-nowrap select-all">${t.address||'—'}</code>
                 <button class="copy relative inline-flex items-center gap-1 border rounded px-2 py-0.5 ml-1 dark:border-gray-600" data-copy="${t.address||''}">
                   Copiar
                   <span class="tooltip absolute top-7 right-0 bg-black text-white text-[10px] px-2 py-0.5 rounded opacity-0 pointer-events-none transition-opacity">Copiado</span>
@@ -583,8 +625,10 @@
               ${t.fdv!=null?`<div><span class="font-medium">FDV:</span> ${fmtUsd(t.fdv)}</div>`:''}
 
               <div class="flex gap-2 flex-wrap md:col-span-4">
-                ${t.url?`<a href="${t.url}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600 inline-flex items-center gap-2"><img src="https://dexscreener.com/favicon.png" class="w-4 h-4 rounded-sm" /> <span>Dexscreener</span></a>`:''}
-                ${t.xUrl?`<a href="${t.xUrl}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600 inline-flex items-center gap-2"><img src="https://x.com/favicon.ico" class="w-4 h-4 rounded-sm" /> <span>X/Twitter</span></a>`:''}
+                ${t.url?`<a href="${t.url}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600 inline-flex items-center gap-2"><img src="${ICONS.dex}" class="w-4 h-4 rounded-sm" /> <span>Dexscreener</span></a>`:''}
+                ${t.xUrl?`<a href="${t.xUrl}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600 inline-flex items-center gap-2"><img src="${ICONS.x}" class="w-4 h-4 rounded-sm" /> <span>X/Twitter</span></a>`:''}
+                ${t.igUrl?`<a href="${t.igUrl}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600 inline-flex items-center gap-2"><img src="${ICONS.ig}" class="w-4 h-4 rounded-sm" /> <span>Instagram</span></a>`:''}
+                ${t.ttUrl?`<a href="${t.ttUrl}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600 inline-flex items-center gap-2"><img src="${ICONS.tt}" class="w-4 h-4 rounded-sm" /> <span>TikTok</span></a>`:''}
                 ${t.platform?`<a href="${t.platform.url}" target="_blank" rel="noopener" class="border rounded px-3 py-1 dark:border-gray-600 inline-flex items-center gap-2"><img src="${t.platform.iconPrimary}" onerror="this.onerror=null;this.src='${t.platform.iconFallback}'" class="w-4 h-4 rounded-sm" referrerpolicy="no-referrer"/><span>${t.platform.name}</span></a>`:''}
               </div>
             </div>
@@ -598,8 +642,8 @@
         statusEl.textContent='Cargando…';
         const list=await loadTokenList();
         if(!list.length){ tbody.innerHTML=''; statusEl.textContent='Agrega tokens a tokens.json'; return; }
-        const pairs=await fetchAll(list);
-        render(pairs);
+        const [pairs, socials] = await Promise.all([fetchAll(list), loadSocials()]);
+        render(pairs, socials);
         updateTotalMc(pairs);
         updateTotalVol(pairs);
         updateFearIndex(pairs);
@@ -1122,6 +1166,7 @@
   <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"c7335ec6ec0c4d8ba06040d145c5166f"}'></script>
 </body>
 </html>
+
 
 
 
