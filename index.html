@@ -353,7 +353,7 @@
     const mapClip=(v,a,b,A,B)=>{if(a===b)return(A+B)/2;const t=clamp((v-a)/(b-a),0,1);return A+(B-A)*t;};
     const mean=arr=>arr.length?arr.reduce((a,b)=>a+b,0)/arr.length:0;
     const stdev=arr=>{if(arr.length<2)return 0;const m=mean(arr);const v=mean(arr.map(x=>(x-m)**2));return Math.sqrt(v);};
-    const percentile=(arr,p)=>{if(!arr.length)return 0;const a=[...arr].sort((x,y)=>x-y);const idx=clamp((p/100)*(a.length-1),0,a.length-1);const lo=Math.floor(idx),hi=Math.ceil(idx);if(lo===hi)return a[lo];const t=idx-lo;return a[lo]*(1-t)+a[hi]*t;};
+    const percentile=(arr,p)=>{if(!arr.length)return 0;const a=[...arr].sort((x,y)=>x-y);const idx=clamp((p/100)*(a.length-1),0,a.length-1);const lo=Math.floor(idx),hi=Math.ceil(idx);if(lo===hi)return a[lo];const t=idx-lo;return a[lo]*(1-t)+a[hi]*(t);};
 
     function bucketForScore(s){
       if(s<=24) return {label:'Extreme Fear', es:'Pánico', cls:'text-red-500'};
@@ -523,19 +523,32 @@
       tt: 'https://www.tiktok.com/favicon.ico'
     };
 
-    // ---- NUEVO: Render de tarjetas “trend / gainers” ----
+    // ---- NUEVO: Render de tarjetas “trend / gainers” con fallbacks ----
     const topCardsEl = document.getElementById('top-cards');
     const trendListEl = document.getElementById('trendList');
     const gainersListEl = document.getElementById('gainersList');
 
     function renderTopCardsFromTokens(tokens){
       if(!tokens || !tokens.length){ topCardsEl.classList.add('hidden'); return; }
-      const trend = [...tokens].sort((a,b)=>(b.volume24??0)-(a.volume24??0)).slice(0,3); // top por volumen
-      const gainers = [...tokens].filter(t=>typeof t.change24==='number').sort((a,b)=>b.change24-a.change24).slice(0,3);
+
+      // Fallbacks: change = 24h → 6h → 1h → 0 ; volumen = vol24 → liq → 0
+      const enriched = tokens.map(t => {
+        const ch = Number.isFinite(t.change24) ? t.change24
+                : (Number.isFinite(t.change6h) ? t.change6h
+                : (Number.isFinite(t.change1h) ? t.change1h : 0));
+        const vol = Number.isFinite(t.volume24) ? t.volume24
+                 : (Number.isFinite(t.liq) ? t.liq : 0);
+        return { ...t, _chg: ch, _vol: vol };
+      });
+
+      // En tendencia = top por "volumen" con fallback
+      const trend = [...enriched].sort((a,b)=>b._vol - a._vol).slice(0,3);
+
+      // Ganadores = top por % (con fallback calculado)
+      const gainers = [...enriched].sort((a,b)=>b._chg - a._chg).slice(0,3);
 
       const li = (t)=> {
-        const ch=t.change24;
-        const cls = ch>=0 ? 'text-emerald-600' : 'text-red-500';
+        const cls = (t._chg ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-500';
         return `
           <li class="py-2 first:pt-0 last:pb-0">
             <div class="flex items-center justify-between gap-3">
@@ -545,13 +558,13 @@
               </div>
               <div class="flex items-center gap-3 shrink-0">
                 <span class="text-sm tabular-nums">${t.priceUsd!=null?fmtUsdSmart(t.priceUsd):'—'}</span>
-                <span class="text-sm ${cls} tabular-nums">${ch!=null?fmtNum(ch,2)+'%':'—'}</span>
+                <span class="text-sm ${cls} tabular-nums">${fmtNum(t._chg,2)}%</span>
               </div>
             </div>
           </li>`;
       };
 
-      trendListEl.innerHTML = trend.map(li).join('');
+      trendListEl.innerHTML   = trend.map(li).join('');
       gainersListEl.innerHTML = gainers.map(li).join('');
       topCardsEl.classList.remove('hidden');
     }
@@ -572,6 +585,8 @@
           fdv:(typeof p.fdv==='number'?p.fdv:null),
           liq:p.liquidity?.usd??null,
           change24:p.priceChange?.h24??null,
+          change6h:p.priceChange?.h6??null,     // NUEVO
+          change1h:p.priceChange?.h1??null,     // NUEVO
           volume24:(p.volume?.h24 ?? null),
           buys24:(p.txns?.h24?.buys ?? null),
           sells24:(p.txns?.h24?.sells ?? null),
@@ -1182,7 +1197,7 @@
             <div>
               Precio actual de ${A.symbol||A.name}:
               <span class="font-medium text-gray-900 dark:text-gray-100">${fmtUsdSmart(pA)}</span>
-              <span class="${chgA>=0?'text-emerald-600':'text-red-500'} font-medium ml-1">(${fmtNum(chgA,2)}%)</span>
+              <span class="${chgA>=0?'text-emerald-600':'text-red-500'} font-semibold ml-1">(${fmtNum(chgA,2)}%)</span>
             </div>
             <div>
               Precio actual de ${B.symbol||B.name}:
@@ -1230,6 +1245,8 @@
   <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"c7335ec6ec0c4d8ba06040d145c5166f"}'></script>
 </body>
 </html>
+
+
 
 
 
